@@ -52,7 +52,7 @@ impl VoidBitConversion{
     }
 
     pub fn bit_to_void(self: &Self, bit_index: usize) -> Option<usize>{
-        if(bit_index > 63) || (bit_index < 0){
+        if bit_index > 63 {
             return None
         }
         return Some(self._void[bit_index])
@@ -75,4 +75,11 @@ impl Default for VoidBitConversion {
             ],
       }
     }
+}
+
+#[derive(Eq)]
+#[derive(Hash)]
+#[derive(PartialEq)]
+pub enum Color{
+    WHITE,BLACK,
 }

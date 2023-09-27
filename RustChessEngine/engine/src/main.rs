@@ -2,28 +2,13 @@ use chessio::*;
 use constants::*;
 use masks::*;
 
-fn main() {
-/*
-  print_locations(FILE1);
-  print_locations(FILE2);
-  print_locations(FILE3);
-  print_locations(FILE4);
-  print_locations(FILE5);
-  print_locations(FILE6);
-  print_locations(FILE7);
-  print_locations(FILE8);
-*/
+use std::collections::HashMap;
 
-/*
-print_locations(TOPLEFTCORNER);
-print_locations(TOPRIGHTCORNER);
-print_locations(BOTLEFTCORNER);
-print_locations(BOTRIGHTCORNER);
-*/
-  let KnightMoves: [u64; 64] = GenKnightMoves();
-  for index in 0..64{
-    println!("{}",index);
-    print_locations(KnightMoves[index]);
-    println!(" ");
-  }
+fn main() {
+  let KnightMoves: [u64; 64] = gen_knight_masks();
+  let KingMoves: [u64;64] = gen_king_masks();
+  let PawnMoves:  HashMap<Color,[u64;64]> =  gen_pawn_move_masks();
+  let PawnCaptures:  HashMap<Color,[u64;64]> =  gen_pawn_capture_masks();
+  print_locations(PawnMoves.get(&Color::BLACK).unwrap()[52]);
+  print_locations(PawnCaptures.get(&Color::BLACK).unwrap()[52]);
 }
