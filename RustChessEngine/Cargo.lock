@@ -3,5 +3,25 @@
 version = 3
 
 [[package]]
-name = "RustChessEngine"
+name = "chessio"
 version = "0.1.0"
+
+[[package]]
+name = "constants"
+version = "0.1.0"
+
+[[package]]
+name = "engine"
+version = "0.1.0"
+dependencies = [
+ "chessio",
+ "constants",
+ "masks",
+]
+
+[[package]]
+name = "masks"
+version = "0.1.0"
+dependencies = [
+ "constants",
+]
