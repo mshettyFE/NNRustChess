@@ -1,1 +1,1 @@
-/home/lief/NNChessEngine/RustChessEngine/target/debug/libmasks.rlib: /home/lief/NNChessEngine/RustChessEngine/constants/src/lib.rs /home/lief/NNChessEngine/RustChessEngine/masks/src/lib.rs
+/home/lief/NNChessEngine/RustChessEngine/target/debug/libmasks.rlib: /home/lief/NNChessEngine/RustChessEngine/chessio/src/lib.rs /home/lief/NNChessEngine/RustChessEngine/constants/src/lib.rs /home/lief/NNChessEngine/RustChessEngine/masks/src/lib.rs

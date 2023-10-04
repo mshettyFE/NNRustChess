@@ -1,10 +1,12 @@
 use constants::*;
 use std::collections::HashMap;
 use std::vec::Vec;
+use chessio::*;
 
 fn test_move_candidates(void_candidates: Vec<usize>, void_bit_mapping: &VoidBitConversion) -> u64{
     let mut output_moves: u64 = 0;
     for potential_move in void_candidates.iter(){
+// Check if you can convert the void index to a valid bit index. If you can. Then OR in that position to output
         match void_bit_mapping.void_to_bit(*potential_move){  
             None => (),
             Some(index) => output_moves |= 1 << index,
@@ -13,12 +15,36 @@ fn test_move_candidates(void_candidates: Vec<usize>, void_bit_mapping: &VoidBitC
   output_moves
 }
 
+fn test_slide_move_candidates(current_void_square: usize, slide_directions: &Vec<isize>, void_bit_mapping: &VoidBitConversion) -> u64{
+  let mut output_moves: u64 = 0;
+  let mut current: isize = current_void_square as isize;
+// probe each provided direction in void space
+  for direction in slide_directions.iter(){
+    // reset starting square
+    current = current_void_square as isize;
+    let mut inside: bool = true;
+    while inside{
+// project out the vector, and see if positive number. If not, then exit loop
+        current += direction;
+        if(current < 0){
+            break;
+        }
+// see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
+        match void_bit_mapping.void_to_bit(current as usize){  
+            None => (inside = false),
+            Some(index) => output_moves |= 1 << index,
+        }
+    }
+  }
+  output_moves
+}
+
 pub fn gen_knight_masks() -> [u64; 64] {
     let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
     let mut arr:[u64; 64] = [0; 64];
     for bit_index in 0..64{
 // Convert bitboard index to void index
-        let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
+let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
 // Create array of possible knight moves from current position on voidboard
         let void_candidates =  Vec::from([void_index+25,void_index+23,void_index+14, void_index+10,
                                             void_index-25,void_index-23,void_index-14, void_index-10]);
@@ -26,6 +52,28 @@ pub fn gen_knight_masks() -> [u64; 64] {
         arr[bit_index] = output_moves;    
     }
     arr
+}
+
+pub fn gen_rook_masks() -> [u64; 64]{
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    let mut output: [u64; 64] = [0;64];
+    let sliding_directions: Vec<isize> = Vec::from([12,-12,1,-1]);
+    for bit_index in 0..64 {
+      let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
+      output[bit_index] = test_slide_move_candidates(void_index, &sliding_directions, &void_bit_mapping);
+    }
+    output
+}
+
+pub fn gen_bishop_masks() -> [u64; 64]{
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    let mut output: [u64; 64] = [0;64];
+    let sliding_directions: Vec<isize> = Vec::from([13,11,-13,-11]);
+    for bit_index in 0..64 {
+        let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
+        output[bit_index] = test_slide_move_candidates(void_index, &sliding_directions, &void_bit_mapping);
+    }
+    output
 }
 
 pub fn gen_king_masks() -> [u64; 64] {
