@@ -1,4 +1,5 @@
 use chessio::*;
+use constants::*;
 
 pub fn permutate_board(board: u64) -> Vec<u64>{
 // Give a board state, returns a vector if size 2^M where M is the number of on bits
@@ -6,19 +7,19 @@ pub fn permutate_board(board: u64) -> Vec<u64>{
 // Used in sliding move generation
 
 // Find which bits are set in the board
-  let mut temp: u64 = board;
+let mut temp: u64 = board;
 
-  let mut set_bits: Vec<u64> = Vec::new();
-  temp = board;
+let mut set_bits: Vec<u64> = Vec::new();
+temp = board;
 // LSB = Least significant bit 
-  let mut LSB: u64 = 0;
-  while(temp!=0){
+let mut LSB: u64 = 0;
+while(temp!=0){
 // Extract LSB 
-    LSB  = !(temp&(temp-1))&temp;
-    set_bits.push(LSB);   
+  LSB  = !(temp&(temp-1))&temp;
+  set_bits.push(LSB);   
 // Use XOR to eliminate LSB from board state
-    temp ^= LSB;
-  }
+  temp ^= LSB;
+}
 
 // Get total number of set bits
   let mut count: usize  = set_bits.len();
@@ -51,4 +52,46 @@ pub fn permutate_board(board: u64) -> Vec<u64>{
   }
 
   output
+}
+
+pub fn bitboard_to_voidboard(board: u64) -> [VoidBoardPieceStatus; 144]{
+    let mut output = VOID_BOARD;
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    for i in 0..64{
+      let mut mask: u64 = 1<<i;
+      if (mask&board) != 0{
+  // Get associated square on VOID_BOARD
+          let void_index: usize = void_bit_mapping.bit_to_void(i).unwrap();
+  // Set square to occupied if empty
+          if(output[void_index] == VoidBoardPieceStatus::EMPTY){
+              output[void_index] = VoidBoardPieceStatus::OCCUPIED;
+          }
+      } 
+    }
+    output
+  }
+
+  pub fn voidboard_to_bitboard(board: &[VoidBoardPieceStatus; 144]) -> u64{
+    let mut output: u64 = 0;
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    for i in 0..144{
+        if(board[i]== VoidBoardPieceStatus::OCCUPIED){
+            let bit_index = void_bit_mapping.void_to_bit(i).unwrap();
+            output |= 1<<bit_index;
+        }
+    }
+    output
+  }
+
+pub fn gen_rook_moves(board: u64, location: usize) -> u64{
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    if(location > 63){
+        panic!("index out of range");
+    }
+    let piece_position = 1<<location;
+// XOR removes piece from board
+    let other_pieces = board ^ piece_position;
+// Transform to void space
+    let board_in_void  = bitboard_to_voidboard(other_pieces);
+    other_pieces    
 }

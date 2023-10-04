@@ -16,28 +16,28 @@ fn test_move_candidates(void_candidates: Vec<usize>, void_bit_mapping: &VoidBitC
 }
 
 fn test_slide_move_candidates(current_void_square: usize, slide_directions: &Vec<isize>, void_bit_mapping: &VoidBitConversion) -> u64{
-  let mut output_moves: u64 = 0;
-  let mut current: isize = current_void_square as isize;
-// probe each provided direction in void space
-  for direction in slide_directions.iter(){
-    // reset starting square
-    current = current_void_square as isize;
-    let mut inside: bool = true;
-    while inside{
-// project out the vector, and see if positive number. If not, then exit loop
-        current += direction;
-        if(current < 0){
-            break;
-        }
-// see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
-        match void_bit_mapping.void_to_bit(current as usize){  
-            None => (inside = false),
-            Some(index) => output_moves |= 1 << index,
-        }
+    let mut output_moves: u64 = 0;
+    let mut current: isize = current_void_square as isize;
+  // probe each provided direction in void space
+    for direction in slide_directions.iter(){
+      // reset starting square
+      current = current_void_square as isize;
+      let mut inside: bool = true;
+      while inside{
+  // project out the vector, and see if positive number. If not, then exit loop
+          current += direction;
+          if(current < 0){
+              break;
+          }
+  // see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
+          match void_bit_mapping.void_to_bit(current as usize){  
+              None => (inside = false),
+              Some(index) => output_moves |= 1 << index,
+          }
+      }
     }
+    output_moves
   }
-  output_moves
-}
 
 pub fn gen_knight_masks() -> [u64; 64] {
     let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
