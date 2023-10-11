@@ -38,6 +38,13 @@ pub enum Color{
     WHITE,BLACK,
 }
 
+#[derive(Eq)]
+#[derive(Hash)]
+#[derive(PartialEq)]
+pub enum SlidingPieceType{
+    ROOK,BISHOP,
+}
+
 pub const VOID_BOARD: [VoidBoardPieceStatus;144] = 
 [
     INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,
@@ -95,4 +102,9 @@ impl Default for VoidBitConversion {
             ],
       }
     }
+}
+
+pub struct MagicNumberData{
+    pub _number: u64,
+    pub _shift: u64,
 }

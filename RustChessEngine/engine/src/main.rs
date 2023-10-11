@@ -6,15 +6,19 @@ use magic::*;
 use std::collections::HashMap;
 
 fn main() {
-  let KnightMoves: [u64; 64] = gen_knight_masks();
-  let KingMoves: [u64;64] = gen_king_masks();
-  let PawnMoves:  HashMap<Color,[u64;64]> =  gen_pawn_move_masks();
-  let PawnCaptures:  HashMap<Color,[u64;64]> =  gen_pawn_capture_masks();
-  let RookMoves: [u64;64] = gen_rook_masks();
-  let BishopMoves: [u64; 64] = gen_bishop_masks();
-  let temp = bitboard_to_voidboard(BishopMoves[0]);
-  print_locations(BishopMoves[0]);
-  print_void_board(&temp);
-  let temp2 = voidboard_to_bitboard(&temp);
-  print_locations(temp2);
+  let _KnightMoves: [u64; 64] = gen_knight_masks();
+  let _KingMoves: [u64;64] = gen_king_masks();
+  let _PawnMoves:  HashMap<Color,[u64;64]> =  gen_pawn_move_masks();
+  let _PawnCaptures:  HashMap<Color,[u64;64]> =  gen_pawn_capture_masks();
+  let _RookMasks: [u64;64] = gen_rook_masks();
+  let _BishopMasks: [u64; 64] = gen_bishop_masks();
+  let mask  = gen_all_sliding_moves(_RookMasks, _BishopMasks);
+  let mut count = 0;
+  /*  
+  for item in mask.values(){
+    println!("{}",count);
+    count += 1;
+    print_locations(*item);
+  }
+  */
 }

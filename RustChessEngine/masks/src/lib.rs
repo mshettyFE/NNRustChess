@@ -30,11 +30,11 @@ fn test_slide_move_candidates(current_void_square: usize, slide_directions: &Vec
               break;
           }
   // see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
-          match void_bit_mapping.void_to_bit(current as usize){  
-              None => (inside = false),
-              Some(index) => output_moves |= 1 << index,
-          }
-      }
+  match void_bit_mapping.void_to_bit(current as usize){  
+    None => (inside = false),
+    Some(index) => output_moves |= 1 << index,
+}
+}
     }
     output_moves
   }

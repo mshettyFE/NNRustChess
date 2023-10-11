@@ -1,5 +1,8 @@
 use chessio::*;
 use constants::*;
+use masks::*;
+use std::collections::HashMap;
+use rand::Rng;
 
 pub fn permutate_board(board: u64) -> Vec<u64>{
 // Give a board state, returns a vector if size 2^M where M is the number of on bits
@@ -83,15 +86,176 @@ pub fn bitboard_to_voidboard(board: u64) -> [VoidBoardPieceStatus; 144]{
     output
   }
 
-pub fn gen_rook_moves(board: u64, location: usize) -> u64{
+  fn test_slide_move_candidates_filled_board(current_void_board_square: usize, void_board_rep: &[VoidBoardPieceStatus; 144], sliding_directions: &Vec<isize>) -> u64{
     let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
-    if(location > 63){
-        panic!("index out of range");
+    let mut output_moves: u64 = 0;
+    let mut current: isize = current_void_board_square as isize;
+  // probe each provided direction in void space
+    for direction in sliding_directions.iter(){
+      // reset starting square
+      current = current_void_board_square as isize;
+      let mut inside: bool = true;
+      while inside{
+  // project out the vector, and see if positive number. If not, then exit loop
+          current += direction;
+          if(current < 0){
+              break;
+          }
+          match(void_board_rep[current as usize]){
+            VoidBoardPieceStatus::EMPTY =>{
+              match void_bit_mapping.void_to_bit(current as usize){  
+                None => (inside = false),
+                Some(index) => output_moves |= 1 << index,
+            }
+          },
+            VoidBoardPieceStatus::OCCUPIED =>{
+                match void_bit_mapping.void_to_bit(current as usize){  
+                  None => (inside = false),
+                  Some(index) => output_moves |= 1 << index,
+              }
+              break;
+            },
+            VoidBoardPieceStatus::INVALID =>{
+                break;
+            },
+          }
+      }
     }
-    let piece_position = 1<<location;
+    output_moves
+}
+
+pub fn gen_rook_moves(board: u64, location: usize) -> u64{
+  let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+  if(location > 63){
+      panic!("index out of range");
+  }
+  let void_position = void_bit_mapping.bit_to_void(location).unwrap();
+  let piece_position = 1<<location;
 // XOR removes piece from board
-    let other_pieces = board ^ piece_position;
+  let other_pieces = board ^ piece_position;
 // Transform to void space
-    let board_in_void  = bitboard_to_voidboard(other_pieces);
-    other_pieces    
+  let mut board_in_void  = bitboard_to_voidboard(other_pieces);
+  let sliding_directions: Vec<isize> = Vec::from([12,-12,1,-1]);
+  test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
+}
+
+pub fn gen_bishop_moves(board: u64, location: usize) -> u64{
+  let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+  if(location > 63){
+    panic!("index out of range");
+}
+let void_position = void_bit_mapping.bit_to_void(location).unwrap();
+  let piece_position = 1<<location;
+// XOR removes piece from board
+  let other_pieces = board ^ piece_position;
+// Transform to void space
+  let mut board_in_void  = bitboard_to_voidboard(other_pieces);
+  let sliding_directions: Vec<isize> = Vec::from([13,11,-13,-11]);
+  test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
+}
+
+
+fn calc_magic_number(initial_state: &u64, final_state: u64, shift: u64, hash_map: &HashMap<u64, u64> ) -> u64{
+  if(final_state ==0){
+    panic!("Final state can't be empty, since captures are allowed!");
+  }
+  let mut rng = rand::thread_rng();
+  let mut  roll: u64 = 0;
+  let output: u64  = 0;
+  let mut index: u64 = 0;
+  while(1==1){
+    roll = rng.gen();
+    index = (roll.wrapping_mul(*initial_state))>>shift;
+    if(hash_map.contains_key(&index)){
+      let stored_final_state = hash_map.get(&index).unwrap();
+      if(*stored_final_state==final_state){
+        break;
+      }
+    }
+    else{
+      break;
+    }
+  }
+  roll
+}
+
+pub fn gen_sliding_moves(p_type: SlidingPieceType, Masks: [u64;64], location: usize) -> HashMap<u64, u64 > {
+  // p_type: Wheather you want ROOK or BISHOP
+// Masks: the series of masks associated with each location. One for each ROOK and BISHOP
+// location: index
+//let mut output: HashMap<u64, MagicNumberData> = Default::default();
+let mut output: HashMap<u64, u64> = Default::default();
+let mut cheat_sheet: HashMap<u64, u64> = Default::default();
+  if(location > 63){
+    panic!("index out of range");
+  }
+  let mask = Masks[location];
+  let mut temp = mask;
+  let mut shift = 64;
+  while(temp !=0){
+    temp &= (temp-1);
+    shift = shift-1;
+  }
+  if(shift==64){
+    panic!("Mask is zero!");
+  }
+  let permutations = permutate_board(mask);
+  cheat_sheet.clear();
+  for initial_state in permutations.iter(){
+    let mut final_state:u64 = 0;
+    if(p_type==SlidingPieceType::ROOK){
+      final_state = gen_rook_moves(*initial_state, location);
+    }
+    else if(p_type==SlidingPieceType::BISHOP){
+      final_state = gen_bishop_moves(*initial_state, location);
+    }
+//    cheat_sheet.insert(*initial_state,final_state);
+//    let mut roll: u64  =  calc_magic_number(&initial_state, final_state, shift, &cheat_sheet);
+//    let mut index = (roll.wrapping_mul(*initial_state))>>shift;
+//    let mut current_magic_pair =  MagicNumberData{_number: roll, _shift: shift};
+//    output.insert(*initial_state,current_magic_pair);
+    output.insert(*initial_state,final_state);
+}
+  output
+}
+
+pub fn gen_all_sliding_moves(RookMasks: [u64; 64], BishopMasks: [u64;64]) -> HashMap<u64, u64 > {
+  let mut output: HashMap<u64, u64> = Default::default();
+  for location in 0..64{
+    let rookmask = RookMasks[location];
+    let mut temp = rookmask;
+    let mut shift = 64;
+    while(temp !=0){
+      temp &= (temp-1);
+      shift = shift-1;
+    }
+    if(shift==64){
+      panic!("Mask is zero!");
+    }
+    let permutations = permutate_board(rookmask);
+    for initial_state in permutations.iter(){
+      let mut final_state:u64 = 0;
+      final_state = gen_rook_moves(*initial_state, location);
+      output.insert(*initial_state,final_state);
+    }  
+  }
+  for location in 0..64{
+    let bishopmask = BishopMasks[location];
+    let mut temp = bishopmask;
+    let mut shift = 64;
+    while(temp !=0){
+      temp &= (temp-1);
+      shift = shift-1;
+    }
+    if(shift==64){
+      panic!("Mask is zero!");
+    }
+    let permutations = permutate_board(bishopmask);
+    for initial_state in permutations.iter(){
+      let mut final_state:u64 = 0;
+      final_state = gen_rook_moves(*initial_state, location);
+      output.insert(*initial_state,final_state);
+    }  
+  }
+  output
 }
