@@ -154,7 +154,7 @@ let void_position = void_bit_mapping.bit_to_void(location).unwrap();
   test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
 }
 
-
+/*
 fn calc_magic_number(initial_state: &u64, final_state: u64, shift: u64, hash_map: &HashMap<u64, u64> ) -> u64{
   if(final_state ==0){
     panic!("Final state can't be empty, since captures are allowed!");
@@ -178,6 +178,7 @@ fn calc_magic_number(initial_state: &u64, final_state: u64, shift: u64, hash_map
   }
   roll
 }
+*/
 
 pub fn gen_sliding_moves(p_type: SlidingPieceType, Masks: [u64;64], location: usize) -> HashMap<u64, u64 > {
   // p_type: Wheather you want ROOK or BISHOP

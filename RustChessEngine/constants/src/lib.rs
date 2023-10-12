@@ -2,6 +2,9 @@ use crate::VoidBoardPieceStatus::EMPTY;
 use crate::VoidBoardPieceStatus::INVALID;
 use crate::VoidBoardPieceStatus::OCCUPIED;
 
+use std::ops::Shl;
+use std::ops::Shr;
+
 // Ranks 
 pub const RANKA: u64 = 255;
 pub const RANKB: u64 = 255 << 8;
@@ -22,6 +25,8 @@ pub const FILE3: u64 = FILE8 << 5;
 pub const FILE2: u64 = FILE8 << 6;
 pub const FILE1: u64 = FILE8 << 7;
 
+// Starting FEN
+pub const START_POS:& str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 #[derive(Eq)]
 #[derive(Debug)]
@@ -43,6 +48,17 @@ pub enum Color{
 #[derive(PartialEq)]
 pub enum SlidingPieceType{
     ROOK,BISHOP,
+}
+
+#[derive(Eq)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+
+pub enum Castling{
+    WHITE_KING = 0b0000_0001,
+    WHITE_QUEEN = 0b0000_0010,
+    BLACK_KING = 0b0000_0100,
+    BLACK_QUEEN = 0b0000_1000,
 }
 
 pub const VOID_BOARD: [VoidBoardPieceStatus;144] = 
