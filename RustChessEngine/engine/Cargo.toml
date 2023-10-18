@@ -10,3 +10,5 @@ chessio = { path = "../chessio" }
 constants = { path = "../constants" }
 masks = { path = "../masks" }
 magic = { path = "../magic" }
+GameState = { path = "../GameState"}
+MoveAlgebraNotation = { path = "../MoveAlgebraNotation"}

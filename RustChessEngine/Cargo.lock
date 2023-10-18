@@ -3,6 +3,23 @@
 version = 3
 
 [[package]]
+name = "GameState"
+version = "0.1.0"
+dependencies = [
+ "chessio",
+ "constants",
+ "magic",
+ "masks",
+]
+
+[[package]]
+name = "MoveAlgebraNotation"
+version = "0.1.0"
+dependencies = [
+ "constants",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -23,6 +40,8 @@ version = "0.1.0"
 name = "engine"
 version = "0.1.0"
 dependencies = [
+ "GameState",
+ "MoveAlgebraNotation",
  "chessio",
  "constants",
  "magic",

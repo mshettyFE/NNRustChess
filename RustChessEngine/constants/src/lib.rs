@@ -51,6 +51,13 @@ pub enum SlidingPieceType{
 }
 
 #[derive(Eq)]
+#[derive(Hash)]
+#[derive(PartialEq)]
+pub enum PieceType{
+  NONE, KING,ROOK,BISHOP,QUEEN, KNIGHT, PAWN,
+}
+
+#[derive(Eq)]
 #[derive(Debug)]
 #[derive(PartialEq)]
 
@@ -100,7 +107,32 @@ impl VoidBitConversion{
         }
         return Some(self._void[bit_index])
     }
-
+    pub fn bitboard_to_voidboard(self: &Self, board: u64) -> [VoidBoardPieceStatus; 144]{
+        let mut output = VOID_BOARD;
+        for i in 0..64{
+          let mut mask: u64 = 1<<i;
+          if (mask&board) != 0{
+      // Get associated square on VOID_BOARD
+              let void_index: usize = self.bit_to_void(i).unwrap();
+      // Set square to occupied if empty
+              if(output[void_index] == VoidBoardPieceStatus::EMPTY){
+                  output[void_index] = VoidBoardPieceStatus::OCCUPIED;
+              }
+          } 
+        }
+        output
+      }
+    
+      pub fn voidboard_to_bitboard(self: &Self, board: &[VoidBoardPieceStatus; 144]) -> u64{
+        let mut output: u64 = 0;
+        for i in 0..144{
+            if(board[i]== VoidBoardPieceStatus::OCCUPIED){
+                let bit_index = self.void_to_bit(i).unwrap();
+                output |= 1<<bit_index;
+            }
+        }
+        output
+      }    
 }
 
 impl Default for VoidBitConversion { 

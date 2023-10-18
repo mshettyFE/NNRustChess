@@ -1,25 +1,25 @@
 use chessio::*;
 use constants::*;
+use GameState::GameState;
 use masks::*;
 use magic::*;
+use MoveAlgebraNotation::*;
 
 fn main() {
-/*
-  let _KnightMoves: [u64; 64] = gen_knight_masks();
-  let _KingMoves: [u64;64] = gen_king_masks();
-  let _PawnMoves:  HashMap<Color,[u64;64]> =  gen_pawn_move_masks();
-  let _PawnCaptures:  HashMap<Color,[u64;64]> =  gen_pawn_capture_masks();
-  let _RookMasks: [u64;64] = gen_rook_masks();
-  let _BishopMasks: [u64; 64] = gen_bishop_masks();
-  let mask  = gen_all_sliding_moves(_RookMasks, _BishopMasks);
-*/
+  let masks: Masks = Masks::default();
   let mut board: GameState = GameState::default();
-  match board.ParseFEN("r3k2r/ p1pppppp/ n7/ 8/ 8/ 8/ P2PPPpP/ R3K2R w KQkq - 0 5"){
+  let mut sliding_moves: SlidingMoves = SlidingMoves::default();
+  sliding_moves.initialize(&masks);
+  match board.ParseFEN("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b KQ g6 0 21"){
     Ok(()) => (),
     Err(e) => return println!("{}",e),
   };
-  println!("test");
-  print_locations(board._white._rook);
-  println!("test");
   board.print_board();
+  match board.check_board_legality(&masks, &sliding_moves) {
+    Ok(bol) => match bol{
+      true => println!("Yes"),
+      false => println!("No"),
+    },
+    Err(msg) => println!("{}",msg),
+  }
 }
