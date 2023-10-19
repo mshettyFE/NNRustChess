@@ -1,9 +1,5 @@
 use crate::VoidBoardPieceStatus::EMPTY;
 use crate::VoidBoardPieceStatus::INVALID;
-use crate::VoidBoardPieceStatus::OCCUPIED;
-
-use std::ops::Shl;
-use std::ops::Shr;
 
 // Ranks 
 pub const RANKA: u64 = 255;
@@ -62,10 +58,10 @@ pub enum PieceType{
 #[derive(PartialEq)]
 
 pub enum Castling{
-    WHITE_KING = 0b0000_0001,
-    WHITE_QUEEN = 0b0000_0010,
-    BLACK_KING = 0b0000_0100,
-    BLACK_QUEEN = 0b0000_1000,
+    WhiteKing = 0b0000_0001,
+    WhiteQueen = 0b0000_0010,
+    BlackKing = 0b0000_0100,
+    BlackQueen = 0b0000_1000,
 }
 
 pub const VOID_BOARD: [VoidBoardPieceStatus;144] = 
@@ -110,12 +106,12 @@ impl VoidBitConversion{
     pub fn bitboard_to_voidboard(self: &Self, board: u64) -> [VoidBoardPieceStatus; 144]{
         let mut output = VOID_BOARD;
         for i in 0..64{
-          let mut mask: u64 = 1<<i;
+          let mask: u64 = 1<<i;
           if (mask&board) != 0{
       // Get associated square on VOID_BOARD
               let void_index: usize = self.bit_to_void(i).unwrap();
       // Set square to occupied if empty
-              if(output[void_index] == VoidBoardPieceStatus::EMPTY){
+              if output[void_index] == VoidBoardPieceStatus::EMPTY {
                   output[void_index] = VoidBoardPieceStatus::OCCUPIED;
               }
           } 
@@ -126,7 +122,7 @@ impl VoidBitConversion{
       pub fn voidboard_to_bitboard(self: &Self, board: &[VoidBoardPieceStatus; 144]) -> u64{
         let mut output: u64 = 0;
         for i in 0..144{
-            if(board[i]== VoidBoardPieceStatus::OCCUPIED){
+            if board[i]== VoidBoardPieceStatus::OCCUPIED {
                 let bit_index = self.void_to_bit(i).unwrap();
                 output |= 1<<bit_index;
             }
@@ -150,9 +146,4 @@ impl Default for VoidBitConversion {
             ],
       }
     }
-}
-
-pub struct MagicNumberData{
-    pub _number: u64,
-    pub _shift: u64,
 }

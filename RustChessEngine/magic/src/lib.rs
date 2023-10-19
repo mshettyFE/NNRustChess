@@ -2,7 +2,6 @@ use chessio::*;
 use constants::*;
 use masks::*;
 use std::collections::HashMap;
-use rand::Rng;
 
 pub struct SlidingMoves{
   pub _rook_hash_map: HashMap<u64,u64>,
@@ -17,8 +16,8 @@ impl Default for SlidingMoves{
 
 impl SlidingMoves{
   pub fn initialize(self: &mut Self, mask: &Masks){
-    self._rook_hash_map =  gen_sliding_rook_moves(&mask._rook_mask);
-    self._bishop_hash_map =  gen_sliding_bishop_moves(&mask._bishop_mask)
+    self._rook_hash_map =  self.gen_sliding_rook_moves(&mask._rook_mask);
+    self._bishop_hash_map =  self.gen_sliding_bishop_moves(&mask._bishop_mask)
   }
   pub fn iterate_moves(self: &Self){
     println!("Test");
@@ -44,127 +43,161 @@ impl SlidingMoves{
     let  bishop_slide_move: u64 = self._bishop_hash_map[&key];
     bishop_slide_move ^ (bishop_slide_move & occupied)
   }
-}
-
-fn permutate_board(board: u64) -> Vec<u64>{
-  // Give a board state, returns a vector if size 2^M where M is the number of on bits
-  // The vector is filled with all possible permutations of on and off of the set bits of board
-  // Used in sliding move generation
-
-  // Find which bits are set in the board
-  let mut temp: u64 = board;
-
-  let mut set_bits: Vec<u64> = Vec::new();
-  temp = board;
-  // LSB = Least significant bit 
-  let mut LSB: u64 = 0;
-  while(temp!=0){
-  // Extract LSB 
-    LSB  = !(temp&(temp-1))&temp;
-    set_bits.push(LSB);   
-  // Use XOR to eliminate LSB from board state
-    temp ^= LSB;
-  }
-
-  // Get total number of set bits
-    let mut count: usize  = set_bits.len();
-
-    let mut output: Vec<u64> = Vec::new();
-    // If no bits are set, then return immediately, since output should have length of 1
-    if(count==0){
-      output.push(0);
-      return output
+  fn permutate_board(self: &Self, board: u64) -> Vec<u64>{
+    // Give a board state, returns a vector if size 2^M where M is the number of on bits
+    // The vector is filled with all possible permutations of on and off of the set bits of board
+    // Used in sliding move generation
+  
+    // Find which bits are set in the board
+    let mut temp: u64;
+  
+    let mut set_bits: Vec<u64> = Vec::new();
+    temp = board;
+    // LSB = Least significant bit 
+    let mut lsb: u64;
+    while temp!=0 {
+    // Extract LSB 
+      lsb  = !(temp&(temp-1))&temp;
+      set_bits.push(lsb);   
+    // Use XOR to eliminate LSB from board state
+      temp ^= lsb;
     }
-
-
-  // Calculate maximum permutations
-    let max_permutations:usize = 1<<count;
-
-  // Fill the output with 2^count values
-    let mut current: usize;
-    let mut output_value: u64;
-    for i in 0..max_permutations {
-      output_value = 0;
-      current = i;
-      for index in 0..count{
-  // Check if current[index]==1
-        if ((current >> index) & 1) == 1 {
-  // If there is a 1 present, include that index 
-          output_value |= set_bits[index];  
-        }
+  
+    // Get total number of set bits
+      let count: usize  = set_bits.len();
+  
+      let mut output: Vec<u64> = Vec::new();
+      // If no bits are set, then return immediately, since output should have length of 1
+      if count==0 {
+        output.push(0);
+        return output
       }
-      output.push(output_value);
-    }
-
-    output
-}
-
-fn test_slide_move_candidates_filled_board(current_void_board_square: usize, void_board_rep: &[VoidBoardPieceStatus; 144], sliding_directions: &Vec<isize>) -> u64{
-    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
-    let mut output_moves: u64 = 0;
-    let mut current: isize = current_void_board_square as isize;
-  // probe each provided direction in void space
-    for direction in sliding_directions.iter(){
-      // reset starting square
-      current = current_void_board_square as isize;
-      let mut inside: bool = true;
-      while inside{
-  // project out the vector, and see if positive number. If not, then exit loop
-          current += direction;
-          if(current < 0){
-              break;
+  
+  
+    // Calculate maximum permutations
+      let max_permutations:usize = 1<<count;
+  
+    // Fill the output with 2^count values
+      let mut current: usize;
+      let mut output_value: u64;
+      for i in 0..max_permutations {
+        output_value = 0;
+        current = i;
+        for index in 0..count{
+    // Check if current[index]==1
+          if ((current >> index) & 1) == 1 {
+    // If there is a 1 present, include that index 
+            output_value |= set_bits[index];  
           }
-          match(void_board_rep[current as usize]){
-            VoidBoardPieceStatus::EMPTY =>{
-              match void_bit_mapping.void_to_bit(current as usize){  
-                None => (inside = false),
-                Some(index) => output_moves |= 1 << index,
+        }
+        output.push(output_value);
+      }
+  
+      output
+  }
+  
+  fn test_slide_move_candidates_filled_board(self: &Self, current_void_board_square: usize, void_board_rep: &[VoidBoardPieceStatus; 144], sliding_directions: &Vec<isize>) -> u64{
+      let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+      let mut output_moves: u64 = 0;
+      let mut current: isize;
+    // probe each provided direction in void space
+      for direction in sliding_directions.iter(){
+        // reset starting square
+        current = current_void_board_square as isize;
+        let mut inside: bool = true;
+        while inside{
+    // project out the vector, and see if positive number. If not, then exit loop
+            current += direction;
+            if current < 0 {
+                break;
             }
-          },
-            VoidBoardPieceStatus::OCCUPIED =>{
+            match void_board_rep[current as usize]{
+              VoidBoardPieceStatus::EMPTY =>{
                 match void_bit_mapping.void_to_bit(current as usize){  
-                  None => (inside = false),
+                  None => inside = false,
                   Some(index) => output_moves |= 1 << index,
               }
-              break;
             },
-            VoidBoardPieceStatus::INVALID =>{
+              VoidBoardPieceStatus::OCCUPIED =>{
+                  match void_bit_mapping.void_to_bit(current as usize){  
+                    None => inside = false,
+                    Some(index) => output_moves |= 1 << index,
+                }
                 break;
-            },
-          }
+              },
+              VoidBoardPieceStatus::INVALID =>{
+                  break;
+              },
+            }
+        }
       }
+      output_moves
+  }
+  
+  fn gen_rook_moves(self: &Self, board: u64, location: usize) -> u64{
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    if location > 63{
+        panic!("index out of range");
     }
-    output_moves
-}
-
-fn gen_rook_moves(board: u64, location: usize) -> u64{
-  let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
-  if(location > 63){
+    let void_position = void_bit_mapping.bit_to_void(location).unwrap();
+    let piece_position = 1<<location;
+    // XOR removes piece from board
+    let other_pieces = board ^ piece_position;
+    // Transform to void space
+    let board_in_void  = void_bit_mapping.bitboard_to_voidboard(other_pieces);
+    let sliding_directions: Vec<isize> = Vec::from([12,-12,1,-1]);
+    self.test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
+  }
+  
+  fn gen_bishop_moves(self: &Self, board: u64, location: usize) -> u64{
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    if location > 63{
       panic!("index out of range");
+    }
+    let void_position = void_bit_mapping.bit_to_void(location).unwrap();
+    let piece_position = 1<<location;
+    // XOR removes piece from board
+    let other_pieces = board ^ piece_position;
+    // Transform to void space
+    let board_in_void  = void_bit_mapping.bitboard_to_voidboard(other_pieces);
+    let sliding_directions: Vec<isize> = Vec::from([13,11,-13,-11]);
+    self.test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
   }
-  let void_position = void_bit_mapping.bit_to_void(location).unwrap();
-  let piece_position = 1<<location;
-  // XOR removes piece from board
-  let other_pieces = board ^ piece_position;
-  // Transform to void space
-  let mut board_in_void  = void_bit_mapping.bitboard_to_voidboard(other_pieces);
-  let sliding_directions: Vec<isize> = Vec::from([12,-12,1,-1]);
-  test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
-}
-
-fn gen_bishop_moves(board: u64, location: usize) -> u64{
-  let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
-  if(location > 63){
-    panic!("index out of range");
+  
+  
+  fn gen_sliding_rook_moves(self: &Self, rook_masks: &[u64; 64]) -> HashMap<u64, u64> {
+    let mut output: HashMap<u64, u64> = Default::default();
+    for location in 0..64{
+      let rookmask = rook_masks[location];
+      if rookmask.leading_zeros()==64{
+        panic!("Mask is zero!");
+      }
+      let permutations = self.permutate_board(rookmask);
+      for initial_state in permutations.iter(){
+        let final_state:u64;
+        final_state = self.gen_rook_moves(*initial_state, location);
+        output.insert(*initial_state,final_state);
+      }  
+    }
+    output
   }
-  let void_position = void_bit_mapping.bit_to_void(location).unwrap();
-  let piece_position = 1<<location;
-  // XOR removes piece from board
-  let other_pieces = board ^ piece_position;
-  // Transform to void space
-  let mut board_in_void  = void_bit_mapping.bitboard_to_voidboard(other_pieces);
-  let sliding_directions: Vec<isize> = Vec::from([13,11,-13,-11]);
-  test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
+  
+  fn gen_sliding_bishop_moves(self: &Self, bishop_masks: &[u64;64]) -> HashMap<u64, u64 > {
+    let mut output: HashMap<u64, u64> = Default::default();
+    for location in 0..64{
+      let bishopmask = bishop_masks[location];
+      if bishopmask.trailing_zeros()==64{
+        panic!("Mask is zero!");
+      }
+      let permutations = self.permutate_board(bishopmask);
+      for initial_state in permutations.iter(){
+         let final_state:u64;
+        final_state = self.gen_rook_moves(*initial_state, location);
+        output.insert(*initial_state,final_state);
+      }  
+    }
+    output
+  }
 }
 
 /*
@@ -192,37 +225,3 @@ fn calc_magic_number(initial_state: &u64, final_state: u64, shift: u64, hash_map
   roll
 }
 */
-
-fn gen_sliding_rook_moves(RookMasks: &[u64; 64]) -> HashMap<u64, u64> {
-  let mut output: HashMap<u64, u64> = Default::default();
-  for location in 0..64{
-    let mut rookmask = RookMasks[location];
-    if(rookmask.leading_zeros()==64){
-      panic!("Mask is zero!");
-    }
-    let permutations = permutate_board(rookmask);
-    for initial_state in permutations.iter(){
-      let mut final_state:u64 = 0;
-      final_state = gen_rook_moves(*initial_state, location);
-      output.insert(*initial_state,final_state);
-    }  
-  }
-  output
-}
-
-fn gen_sliding_bishop_moves(BishopMasks: &[u64;64]) -> HashMap<u64, u64 > {
-  let mut output: HashMap<u64, u64> = Default::default();
-  for location in 0..64{
-    let bishopmask = BishopMasks[location];
-    if(bishopmask.trailing_zeros()==64){
-      panic!("Mask is zero!");
-    }
-    let permutations = permutate_board(bishopmask);
-    for initial_state in permutations.iter(){
-       let mut final_state:u64 = 0;
-      final_state = gen_rook_moves(*initial_state, location);
-      output.insert(*initial_state,final_state);
-    }  
-  }
-  output
-}

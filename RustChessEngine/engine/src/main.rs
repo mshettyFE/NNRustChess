@@ -1,16 +1,13 @@
-use chessio::*;
-use constants::*;
 use GameState::GameState;
 use masks::*;
 use magic::*;
-use MoveAlgebraNotation::*;
 
 fn main() {
   let masks: Masks = Masks::default();
   let mut board: GameState = GameState::default();
   let mut sliding_moves: SlidingMoves = SlidingMoves::default();
   sliding_moves.initialize(&masks);
-  match board.ParseFEN("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b KQ g6 0 21"){
+  match board.parse_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b KQ g6 0 21"){
     Ok(()) => (),
     Err(e) => return println!("{}",e),
   };

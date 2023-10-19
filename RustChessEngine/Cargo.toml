@@ -5,4 +5,8 @@ members = [
     "constants",
     "masks",
     "chessio",
+    "magic",
+    "GameState",
+    "SideState",
+    "MoveAlgebraNotation",
 ]

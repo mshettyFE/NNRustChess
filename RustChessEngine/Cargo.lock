@@ -6,6 +6,7 @@ version = 3
 name = "GameState"
 version = "0.1.0"
 dependencies = [
+ "SideState",
  "chessio",
  "constants",
  "magic",
@@ -17,6 +18,16 @@ name = "MoveAlgebraNotation"
 version = "0.1.0"
 dependencies = [
  "constants",
+]
+
+[[package]]
+name = "SideState"
+version = "0.1.0"
+dependencies = [
+ "chessio",
+ "constants",
+ "magic",
+ "masks",
 ]
 
 [[package]]

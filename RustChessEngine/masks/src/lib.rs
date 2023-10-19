@@ -1,7 +1,6 @@
 use constants::*;
 use std::collections::HashMap;
 use std::vec::Vec;
-use chessio::*;
 
 pub struct Masks{
     pub _knight_mask: [u64; 64],
@@ -38,21 +37,20 @@ impl Default for Masks{
 
   fn test_slide_move_candidates( current_void_square: usize, slide_directions: &Vec<isize>, void_bit_mapping: &VoidBitConversion) -> u64{
       let mut output_moves: u64 = 0;
-      let mut current: isize = current_void_square as isize;
       // probe each provided direction in void space
       for direction in slide_directions.iter(){
           // reset starting square
-          current = current_void_square as isize;
+          let mut current = current_void_square as isize;
           let mut inside: bool = true;
           while inside{
       // project out the vector, and see if positive number. If not, then exit loop
               current += direction;
-              if(current < 0){
+              if current < 0 {
                   break;
               }
       // see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
       match void_bit_mapping.void_to_bit(current as usize){  
-          None => (inside = false),
+          None => inside = false,
           Some(index) => output_moves |= 1 << index,
           }
       }
@@ -121,7 +119,7 @@ impl Default for Masks{
       for bit_index in 0..64{
           let current = 1 << bit_index;
       // white move generation
-          let mut white_output_move: u64 = 0;
+          let white_output_move: u64;
           let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
           // white pawns can't be on RANKA
           if (current& RANKA) != 0 {
@@ -140,7 +138,7 @@ impl Default for Masks{
               white_moves[bit_index] = white_output_move;
           }
       // black move generation
-          let mut black_output_move: u64 = 0;
+          let black_output_move: u64;
           if (current& RANKH) != 0 {
               black_moves[bit_index] = 0;
           }
@@ -170,7 +168,7 @@ impl Default for Masks{
       for bit_index in 0..64{
           let current = 1 << bit_index;
       // white move generation
-          let mut white_output_move: u64 = 0;
+          let white_output_move: u64;
           let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
           // white pawns can't be on RANKA
           if (current& RANKA) != 0 {
@@ -183,7 +181,7 @@ impl Default for Masks{
               white_moves[bit_index] = white_output_move;
           }
       // black move generation
-          let mut black_output_move: u64 = 0;
+          let black_output_move: u64;
           if (current& RANKH) != 0 {
               black_moves[bit_index] = 0;
           }
