@@ -1,6 +1,7 @@
 use GameState::GameState;
 use masks::*;
 use magic::*;
+use tch::Tensor;
 
 fn main() {
   let masks: Masks = Masks::default();
@@ -19,4 +20,7 @@ fn main() {
     },
     Err(msg) => println!("{}",msg),
   }
+    let t = Tensor::from_slice(&[3, 1, 4, 1, 5]);
+    let t = t * 2;
+    t.print();
 }

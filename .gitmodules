@@ -1,3 +1,0 @@
-[submodule "RustChessEngine/tch-rs"]
-	path = RustChessEngine/tch-rs
-	url = https://github.com/LaurentMazare/tch-rs.git
