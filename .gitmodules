@@ -1,3 +1,0 @@
-[submodule "GenDataSet/Stockfish"]
-	path = GenDataSet/Stockfish
-	url = https://github.com/official-stockfish/Stockfish.git
