@@ -62,6 +62,7 @@ pub enum Castling{
     WhiteQueen = 0b0000_0010,
     BlackKing = 0b0000_0100,
     BlackQueen = 0b0000_1000,
+    None = 0b0000_0000,
 }
 
 pub const VOID_BOARD: [VoidBoardPieceStatus;144] = 

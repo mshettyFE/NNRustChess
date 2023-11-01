@@ -1,6 +1,12 @@
 import sys
 import re
 from stockfish import Stockfish
+import string_sum
+
+def GMasks():
+	print(string_sum.sum_as_string(10,20))
+
+
 
 ## (?<=\*)[#0-9A-Za-z +-]+(?=\*)
 
@@ -49,6 +55,8 @@ def run_stock(stockfish, game):
 #		stockfish.get_board_visual()
 
 if __name__ == "__main__":
+	GMasks()
+	sys.exit()
 	stockfish = Stockfish(path= "/usr/games/stockfish")
 	games = parser()
 	data = []

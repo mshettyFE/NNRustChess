@@ -22,6 +22,7 @@ impl Default for GameState {
 }
 
 impl GameState{
+
   fn loc_to_board(self: &Self, location: &str) -> Result<u64,String> {
     // Takes a two character location in rank-file notation, and convert it to a u64 board position
     let loc = location.trim().to_lowercase();  
@@ -59,7 +60,6 @@ impl GameState{
     }
     Ok(output)
   }
-  
 
   fn get_attacks(self: &Self, masks: &Masks, sliding: &SlidingMoves) -> Result<u64, String> {
     let current_side: &SideState = match self._current_move{

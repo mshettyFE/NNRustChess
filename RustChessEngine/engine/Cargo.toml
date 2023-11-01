@@ -12,4 +12,4 @@ masks = { path = "../masks" }
 magic = { path = "../magic" }
 GameState = { path = "../GameState"}
 MoveAlgebraNotation = { path = "../MoveAlgebraNotation"}
-tch = { git = "https://github.com/LaurentMazare/tch-rs.git" }
+#tch = { git = "https://github.com/LaurentMazare/tch-rs.git" }
