@@ -23,7 +23,6 @@ nvidia-nvjitlink-cu12==12.3.52
 nvidia-nvtx-cu12==12.1.105
 Pillow==10.1.0
 pycparser==2.21
-PythonBindings @ file:///tmp/.tmpPndA4O/PythonBindings-0.1.0-cp310-cp310-linux_x86_64.whl
 requests==2.31.0
 stockfish==3.28.0
 sympy==1.12

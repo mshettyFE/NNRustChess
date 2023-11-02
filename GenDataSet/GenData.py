@@ -1,12 +1,12 @@
 import sys
 import re
 from stockfish import Stockfish
-import string_sum
+import Bindings
 
 def GMasks():
-	print(string_sum.sum_as_string(10,20))
-
-
+	print(Bindings.vector())
+	print(Bindings.two_vector())
+	print(Bindings.sum_as_string(10,20))
 
 ## (?<=\*)[#0-9A-Za-z +-]+(?=\*)
 
