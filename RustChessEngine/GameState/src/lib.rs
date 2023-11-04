@@ -106,7 +106,7 @@ impl GameState{
     Ok(output)
   }
 
-  fn find_occupied(self: &Self) ->Result<u64, String> {
+  fn find_occupied(&self) ->Result<u64, String> {
     let white_oc = self._white._occupied;
     let black_oc = self._black._occupied;
     if (white_oc & black_oc) != 0{
@@ -115,7 +115,7 @@ impl GameState{
     Ok(white_oc | black_oc)
   }
 
-  pub fn parse_fen(self: &mut Self, fen: &str ) -> Result<(), String> {
+  pub fn parse_fen(&mut self, fen: &str ) -> Result<(), String> {
     // break up by / to seperate ranks
     let parts = fen.split("/");
     if parts.clone().count() != 8{

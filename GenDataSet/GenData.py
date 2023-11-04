@@ -5,7 +5,7 @@ import Bindings
 
 def GMasks():
 	print(Bindings.vector())
-	print(Bindings.two_vector())
+	print(Bindings.array())
 	print(Bindings.sum_as_string(10,20))
 
 ## (?<=\*)[#0-9A-Za-z +-]+(?=\*)
