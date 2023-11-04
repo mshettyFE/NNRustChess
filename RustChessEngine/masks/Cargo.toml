@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 constants = { path = "../constants" }
 chessio = { path = "../chessio" }
+pyo3 = { version = "0.20.0", features = ["extension-module"] }

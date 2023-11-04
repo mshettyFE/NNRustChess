@@ -1,7 +1,10 @@
 use constants::*;
 use std::collections::HashMap;
 use std::vec::Vec;
+use pyo3::prelude::*;
+use pyo3::wrap_pyfunction;
 
+#[pyclass]
 pub struct Masks{
     pub _knight_mask: [u64; 64],
     pub _rook_mask: [u64; 64],
@@ -22,6 +25,35 @@ impl Default for Masks{
     }
   }
 }
+
+#[pymethods]
+impl Masks{
+    #[new]
+    fn new() -> Self {
+        Masks::default()
+    }
+
+    #[getter]
+    fn knight_mask(&self, py:Python<'_>) -> PyResult<PyObject>{
+        Ok(self._knight_mask.into_py(py))
+    }
+
+    #[getter]
+    fn rook_mask(&self, py:Python<'_>) -> PyResult<PyObject>{
+        Ok(self._rook_mask.into_py(py))
+    }
+
+    #[getter]
+    fn bishop_mask(&self, py:Python<'_>) -> PyResult<PyObject>{
+        Ok(self._bishop_mask.into_py(py))
+    }
+
+    #[getter]
+    fn king_mask(&self, py:Python<'_>) -> PyResult<PyObject>{
+        Ok(self._king_mask.into_py(py))
+    }
+}
+
 
   fn test_move_candidates( void_candidates: Vec<usize>, void_bit_mapping: &VoidBitConversion) -> u64{
       let mut output_moves: u64 = 0;
