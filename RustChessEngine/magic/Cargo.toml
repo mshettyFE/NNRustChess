@@ -10,3 +10,4 @@ chessio = { path = "../chessio" }
 constants = { path = "../constants" }
 masks = { path = "../masks" }
 rand = "0.8.5"
+pyo3 = { version = "0.20.0", features = ["extension-module"] }

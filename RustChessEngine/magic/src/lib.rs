@@ -2,7 +2,9 @@ use chessio::*;
 use constants::*;
 use masks::*;
 use std::collections::HashMap;
+use pyo3::prelude::*;
 
+#[pyclass]
 pub struct SlidingMoves{
   pub _rook_hash_map: HashMap<u64,u64>,
   pub _bishop_hash_map: HashMap<u64,u64>,
@@ -14,12 +16,21 @@ impl Default for SlidingMoves{
   }
 }
 
+#[pymethods]
 impl SlidingMoves{
-  pub fn initialize(self: &mut Self, mask: &Masks){
-    self._rook_hash_map =  self.gen_sliding_rook_moves(&mask._rook_mask);
-    self._bishop_hash_map =  self.gen_sliding_bishop_moves(&mask._bishop_mask)
+  #[new]
+  pub fn new() -> Self {
+    SlidingMoves::default()
   }
-  pub fn iterate_moves(self: &Self){
+  pub fn initialize(&mut self, mask: &Masks){
+    self._rook_hash_map =  self.gen_sliding_rook_moves(&mask._rook_mask);
+    self._bishop_hash_map =  self.gen_sliding_bishop_moves(&mask._bishop_mask);
+  }
+}
+
+impl SlidingMoves{
+  
+  pub fn iterate_moves(&self){
     println!("Test");
     for (key, value) in self._rook_hash_map.clone().into_iter() {
       println!("Rook {} {}", key, value);
@@ -32,18 +43,18 @@ impl SlidingMoves{
       print_locations(value);
     }
   }
-  pub fn get_rook_move(self: &Self, occupied: u64, index: usize, masks: &Masks) -> u64{
+  pub fn get_rook_move(&self, occupied: u64, index: usize, masks: &Masks) -> u64{
     let key: u64 =  occupied & masks._rook_mask[index];
     let  rook_slide_move: u64 = self._rook_hash_map[&key];
     rook_slide_move ^ (rook_slide_move & occupied)
   }
   
-  pub fn get_bishop_move(self: &Self, occupied: u64, index: usize, masks: &Masks) -> u64{
+  pub fn get_bishop_move(&self, occupied: u64, index: usize, masks: &Masks) -> u64{
     let key: u64 = occupied & masks._bishop_mask[index];
     let  bishop_slide_move: u64 = self._bishop_hash_map[&key];
     bishop_slide_move ^ (bishop_slide_move & occupied)
   }
-  fn permutate_board(self: &Self, board: u64) -> Vec<u64>{
+  fn permutate_board(&self, board: u64) -> Vec<u64>{
     // Give a board state, returns a vector if size 2^M where M is the number of on bits
     // The vector is filled with all possible permutations of on and off of the set bits of board
     // Used in sliding move generation
@@ -96,7 +107,7 @@ impl SlidingMoves{
       output
   }
   
-  fn test_slide_move_candidates_filled_board(self: &Self, current_void_board_square: usize, void_board_rep: &[VoidBoardPieceStatus; 144], sliding_directions: &Vec<isize>) -> u64{
+  fn test_slide_move_candidates_filled_board(&self, current_void_board_square: usize, void_board_rep: &[VoidBoardPieceStatus; 144], sliding_directions: &Vec<isize>) -> u64{
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
       let mut output_moves: u64 = 0;
       let mut current: isize;
@@ -134,7 +145,7 @@ impl SlidingMoves{
       output_moves
   }
   
-  fn gen_rook_moves(self: &Self, board: u64, location: usize) -> u64{
+  fn gen_rook_moves(&self, board: u64, location: usize) -> u64{
     let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
     if location > 63{
         panic!("index out of range");
@@ -149,7 +160,7 @@ impl SlidingMoves{
     self.test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
   }
   
-  fn gen_bishop_moves(self: &Self, board: u64, location: usize) -> u64{
+  fn gen_bishop_moves(&self, board: u64, location: usize) -> u64{
     let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
     if location > 63{
       panic!("index out of range");
@@ -165,7 +176,7 @@ impl SlidingMoves{
   }
   
   
-  fn gen_sliding_rook_moves(self: &Self, rook_masks: &[u64; 64]) -> HashMap<u64, u64> {
+  fn gen_sliding_rook_moves(&self, rook_masks: &[u64; 64]) -> HashMap<u64, u64> {
     let mut output: HashMap<u64, u64> = Default::default();
     for location in 0..64{
       let rookmask = rook_masks[location];
@@ -182,7 +193,7 @@ impl SlidingMoves{
     output
   }
   
-  fn gen_sliding_bishop_moves(self: &Self, bishop_masks: &[u64;64]) -> HashMap<u64, u64 > {
+  fn gen_sliding_bishop_moves(&self, bishop_masks: &[u64;64]) -> HashMap<u64, u64 > {
     let mut output: HashMap<u64, u64> = Default::default();
     for location in 0..64{
       let bishopmask = bishop_masks[location];

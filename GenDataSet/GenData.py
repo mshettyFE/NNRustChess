@@ -6,6 +6,8 @@ import Bindings
 def GMasks():
 	a = Bindings.Masks()
 	print(a.knight_mask)
+	b = Bindings.SlidingMoves()
+	b.initialize(a)
 
 ## (?<=\*)[#0-9A-Za-z +-]+(?=\*)
 

@@ -2,7 +2,6 @@ use constants::*;
 use std::collections::HashMap;
 use std::vec::Vec;
 use pyo3::prelude::*;
-use pyo3::wrap_pyfunction;
 
 #[pyclass]
 pub struct Masks{

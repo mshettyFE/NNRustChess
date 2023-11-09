@@ -6,6 +6,7 @@ version = 3
 name = "Bindings"
 version = "0.1.0"
 dependencies = [
+ "magic",
  "masks",
  "pyo3",
 ]
@@ -128,6 +129,7 @@ dependencies = [
  "chessio",
  "constants",
  "masks",
+ "pyo3",
  "rand",
 ]
 
