@@ -1,10 +1,13 @@
 use constants::*;
-use std::str;
 use masks::*;
 use magic::*;
 use chessio::*; 
 use SideState::SideState;
+use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::*;
+use pyo3::types::PyLong;
 
+#[pyclass]
 pub struct GameState{
   pub _white: SideState,
   pub _black: SideState,
@@ -21,9 +24,25 @@ impl Default for GameState {
   }
 }
 
+#[pymethods]
 impl GameState{
 
-  fn loc_to_board(self: &Self, location: &str) -> Result<u64,String> {
+  #[new]
+  pub fn new() -> Self {
+    GameState::default()
+  }
+
+  pub fn parse_fen_py(&mut self, fen: &str ) -> PyResult<()> {
+    let result = self.parse_fen(fen);
+   match result{
+      Ok(t) => Ok(()),
+      Err(msg) => Err(PyTypeError::new_err(msg))
+    }
+  }
+}
+
+impl GameState{
+  fn loc_to_board(&self, location: &str) -> Result<u64,String> {
     // Takes a two character location in rank-file notation, and convert it to a u64 board position
     let loc = location.trim().to_lowercase();  
     let mut output: u64  = 0;
@@ -59,60 +78,6 @@ impl GameState{
       }
     }
     Ok(output)
-  }
-
-  fn get_attacks(self: &Self, masks: &Masks, sliding: &SlidingMoves) -> Result<u64, String> {
-    let current_side: &SideState = match self._current_move{
-      Color::WHITE => &self._white,
-      Color::BLACK => &self._black,
-    };
-    let mut temp_current_occupied: u64 =  current_side._occupied;
-    let mut output: u64 = 0;
-    while temp_current_occupied != 0 {
-      let index: usize = temp_current_occupied.trailing_zeros() as usize;
-      let lowest: u64 = temp_current_occupied & (1 << index);
-      if (lowest & current_side._king) != 0{
-        // find overlaps with your own pieces, and remove this overlap from attacks
-        let attack: u64 = masks._king_mask[index] ^ (masks._king_mask[index] & current_side._occupied);
-        output |= attack;
-      }
-      else if (lowest & current_side._knight) != 0{
-        let attack: u64 = masks._knight_mask[index] ^ (masks._knight_mask[index] & current_side._occupied);
-        output |= attack;
-      }
-      else if (lowest & current_side._bishop) != 0{
-        output |=  sliding.get_bishop_move(current_side._occupied, index, masks);
-      }
-      else if (lowest & current_side._rook) != 0{
-        output |=  sliding.get_rook_move(current_side._occupied, index, masks);
-      }
-      else if (lowest & current_side._queen) != 0{
-        output |=  sliding.get_bishop_move(current_side._occupied, index, masks);
-        output |=  sliding.get_rook_move(current_side._occupied, index, masks);
-      }
-      else if (lowest & current_side._pawn) != 0{
-        let pawn_attack_mask = masks._pawn_capture_mask[&self._current_move][index];
-        let mut pawn_attack = pawn_attack_mask ^ (pawn_attack_mask & (current_side._occupied) );
-        if (pawn_attack_mask & self._enpassant) != 0{
-          pawn_attack |= self._enpassant;
-        }
-        output |= pawn_attack;
-      }
-      else{
-        return Err(index.to_string()+" is occupied, but no piece bitboard contains it");
-      }
-      temp_current_occupied ^= lowest;
-    }
-    Ok(output)
-  }
-
-  fn find_occupied(&self) ->Result<u64, String> {
-    let white_oc = self._white._occupied;
-    let black_oc = self._black._occupied;
-    if (white_oc & black_oc) != 0{
-      return Err("Overlapping white and black pieces".to_string());
-    }
-    Ok(white_oc | black_oc)
   }
 
   pub fn parse_fen(&mut self, fen: &str ) -> Result<(), String> {
@@ -335,18 +300,74 @@ impl GameState{
     let half_move_str: &str =  end_section[3].trim();
     match half_move_str.parse::<u64>(){
       Ok(half_moves) => self._halfmove = half_moves,
-      Err(_msg) => return Err("Can't convert half move value to unsigned integer".to_string()),
+      Err(_msg) => return Err("Unable convert half move value to unsigned integer".to_string()),
     }
     // full moves
     let full_move_str: &str =  end_section[4].trim();
     match full_move_str.parse::<u64>(){
       Ok(full_moves) => self._fullmove = full_moves,
-      Err(_msg) => return Err("Can't convert full move value to unsigned integer".to_string()),
+      Err(_msg) => return Err("Unable convert full move value to unsigned integer".to_string()),
     }
     Ok(())
   }
 
-  pub fn print_board(self: &Self){
+
+
+  fn get_attacks(&self, masks: &Masks, sliding: &SlidingMoves) -> Result<u64, String> {
+    let current_side: &SideState = match self._current_move{
+      Color::WHITE => &self._white,
+      Color::BLACK => &self._black,
+    };
+    let mut temp_current_occupied: u64 =  current_side._occupied;
+    let mut output: u64 = 0;
+    while temp_current_occupied != 0 {
+      let index: usize = temp_current_occupied.trailing_zeros() as usize;
+      let lowest: u64 = temp_current_occupied & (1 << index);
+      if (lowest & current_side._king) != 0{
+        // find overlaps with your own pieces, and remove this overlap from attacks
+        let attack: u64 = masks._king_mask[index] ^ (masks._king_mask[index] & current_side._occupied);
+        output |= attack;
+      }
+      else if (lowest & current_side._knight) != 0{
+        let attack: u64 = masks._knight_mask[index] ^ (masks._knight_mask[index] & current_side._occupied);
+        output |= attack;
+      }
+      else if (lowest & current_side._bishop) != 0{
+        output |=  sliding.get_bishop_move(current_side._occupied, index, masks);
+      }
+      else if (lowest & current_side._rook) != 0{
+        output |=  sliding.get_rook_move(current_side._occupied, index, masks);
+      }
+      else if (lowest & current_side._queen) != 0{
+        output |=  sliding.get_bishop_move(current_side._occupied, index, masks);
+        output |=  sliding.get_rook_move(current_side._occupied, index, masks);
+      }
+      else if (lowest & current_side._pawn) != 0{
+        let pawn_attack_mask = masks._pawn_capture_mask[&self._current_move][index];
+        let mut pawn_attack = pawn_attack_mask ^ (pawn_attack_mask & (current_side._occupied) );
+        if (pawn_attack_mask & self._enpassant) != 0{
+          pawn_attack |= self._enpassant;
+        }
+        output |= pawn_attack;
+      }
+      else{
+        return Err(index.to_string()+" is occupied, but no piece bitboard contains it");
+      }
+      temp_current_occupied ^= lowest;
+    }
+    Ok(output)
+  }
+
+  fn find_occupied(&self) ->Result<u64, String> {
+    let white_oc = self._white._occupied;
+    let black_oc = self._black._occupied;
+    if (white_oc & black_oc) != 0{
+      return Err("Overlapping white and black pieces".to_string());
+    }
+    Ok(white_oc | black_oc)
+  }
+
+  pub fn print_board( &self){
     let  white_output: [char; 64];
     let  black_output: [char; 64];
     let mut final_output: [char; 64] = ['-'; 64];
@@ -375,7 +396,7 @@ impl GameState{
     print_char_board(&final_output);
   }
 
-  pub fn check_board_legality(self: &Self, masks: &Masks, sliding: &SlidingMoves) -> Result<bool, String>{
+  pub fn check_board_legality(&self, masks: &Masks, sliding: &SlidingMoves) -> Result<bool, String>{
     let opposing_king_location = match self._current_move {
       Color::WHITE => self._black.extract_king().unwrap(),
       Color::BLACK => self._white.extract_king().unwrap(),
@@ -390,7 +411,7 @@ impl GameState{
     Ok(true)
   }
 
-  pub fn check_move_legality(self: &mut Self,) -> Result<(),String>{
+  pub fn check_move_legality(&mut self,) -> Result<(),String>{
     Ok(())
   }
 

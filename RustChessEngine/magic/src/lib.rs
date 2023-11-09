@@ -22,6 +22,7 @@ impl SlidingMoves{
   pub fn new() -> Self {
     SlidingMoves::default()
   }
+  
   pub fn initialize(&mut self, mask: &Masks){
     self._rook_hash_map =  self.gen_sliding_rook_moves(&mask._rook_mask);
     self._bishop_hash_map =  self.gen_sliding_bishop_moves(&mask._bishop_mask);

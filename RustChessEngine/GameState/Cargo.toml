@@ -11,3 +11,4 @@ masks = { path = "../masks" }
 magic = { path = "../magic" }
 chessio = {path = "../chessio"}
 SideState = {path = "../SideState"}
+pyo3 = { version = "0.20.0", features = ["extension-module"] }

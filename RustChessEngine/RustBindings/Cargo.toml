@@ -12,4 +12,5 @@ crate-type = ["cdylib"]
 [dependencies]
 masks = {path = "../masks"}
 magic = {path = "../magic"}
+GameState = {path = "../GameState"}
 pyo3 = { version = "0.20.0", features = ["extension-module"] }

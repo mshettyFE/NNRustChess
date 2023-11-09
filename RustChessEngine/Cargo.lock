@@ -6,6 +6,7 @@ version = 3
 name = "Bindings"
 version = "0.1.0"
 dependencies = [
+ "GameState",
  "magic",
  "masks",
  "pyo3",
@@ -20,6 +21,7 @@ dependencies = [
  "constants",
  "magic",
  "masks",
+ "pyo3",
 ]
 
 [[package]]

@@ -3,12 +3,12 @@ import re
 from stockfish import Stockfish
 import Bindings
 
-def GMasks():
+def GMasks(FEN):
 	a = Bindings.Masks()
-	print(a.knight_mask)
 	b = Bindings.SlidingMoves()
 	b.initialize(a)
-
+	c = Bindings.GameState()
+	c.parse_fen_py(FEN)
 ## (?<=\*)[#0-9A-Za-z +-]+(?=\*)
 
 WHITE = True
@@ -56,7 +56,7 @@ def run_stock(stockfish, game):
 #		stockfish.get_board_visual()
 
 if __name__ == "__main__":
-	GMasks()
+	GMasks("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 	sys.exit()
 	stockfish = Stockfish(path= "/usr/games/stockfish")
 	games = parser()
