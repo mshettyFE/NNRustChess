@@ -5,7 +5,6 @@ use chessio::*;
 use SideState::SideState;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::PyLong;
 
 #[pyclass]
 pub struct GameState{
