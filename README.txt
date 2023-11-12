@@ -1,3 +1,11 @@
+# Setting up Parser
+run
+```
+sudo apt install stockfish
+```
+
+
+# Pytorch setup
 Enabling CUDA on WSL: https://docs.nvidia.com/cuda/wsl-user-guide/index.html
 
 Run the following commands to set up conda venv in top level directory of git repo:

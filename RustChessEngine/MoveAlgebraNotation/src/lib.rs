@@ -72,4 +72,5 @@ impl MoveAN{
 pub fn gen_index_py(uci_move: String) -> PyResult<u16>{Ok(gen_index(uci_move))}
 
 
-pub fn gen_index(uci_move: String) -> u16 {10}
+// Takes in UCI string and converts that to the index of the output array
+pub fn gen_index(uci_move: String) -> u16 {0}
