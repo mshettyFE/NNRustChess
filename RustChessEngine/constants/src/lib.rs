@@ -35,6 +35,7 @@ pub enum VoidBoardPieceStatus{
 #[derive(Eq)]
 #[derive(Hash)]
 #[derive(PartialEq)]
+#[derive(Debug)]
 pub enum Color{
     WHITE,BLACK,
 }
@@ -48,6 +49,7 @@ pub enum SlidingPieceType{
 
 #[derive(Eq)]
 #[derive(Hash)]
+#[derive(Debug)]
 #[derive(PartialEq)]
 pub enum PieceType{
   NONE, KING,ROOK,BISHOP,QUEEN, KNIGHT, PAWN,
@@ -56,7 +58,6 @@ pub enum PieceType{
 #[derive(Eq)]
 #[derive(Debug)]
 #[derive(PartialEq)]
-
 pub enum Castling{
     WhiteKing = 0b0000_0001,
     WhiteQueen = 0b0000_0010,

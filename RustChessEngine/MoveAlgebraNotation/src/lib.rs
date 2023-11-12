@@ -4,6 +4,7 @@ use magic::SlidingMoves;
 use masks::Masks;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
+use chessio::*;
 
 #[pyclass]
 pub struct MoveAN{
@@ -32,7 +33,7 @@ impl MoveAN{
     }  
 
     pub fn parse_move_py(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> PyResult<String> {
-        let result = self.ParseMove(msg, board, slide, masks);
+        let result = self.ParseSANMove(msg, board, slide, masks);
        match result{
           Ok(t) => Ok((t)),
           Err(msg) => Err(PyTypeError::new_err(msg))
@@ -51,18 +52,28 @@ impl MoveAN{
     }
  
     pub fn print(&self){
-
-    }
- 
-    fn ValidateMove(&self) -> bool{
-        false
+        print_locations(self._start);
+        print_locations(self._end);
+        println!("{:?}", self._color);
+        println!("{:?}", self._type);
+        println!("{:?}", self._promotion);
+        println!("{}", self._capture);
+        println!("{}", self._enpassant);
+        println!("{:?}", self._castling);
+        println!("{}", self._index);
+        
     }
  
     pub fn get_start_u64(&self) -> String{"".to_string()}
  
     pub fn get_end_u64(&self) -> String{"".to_string()}
 
-    pub fn ParseMove(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> Result<String,String>{
+    pub fn ParseSANMove(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> Result<String,String>{
+        self._index = 10;
+        Ok(("e4".to_string()))
+    }
+
+    pub fn ParseUCIMove(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> Result<String,String>{
         self._index = 10;
         Ok(("e2e4".to_string()))
     }
