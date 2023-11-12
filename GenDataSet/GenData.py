@@ -2,6 +2,8 @@ import sys
 import re
 from stockfish import Stockfish
 import Bindings
+import numpy as np
+import chess
 
 def InitState():
 	a = Bindings.Masks()
@@ -43,14 +45,37 @@ def pgn_parser():
 			break
 	return games
 
+def gen_data_entry(stockfish,board_position, MoveData, Board, Slide, Masks):
+	stockfish.set_fen_position(board_position)
+	# Output representation of moves. The numbers are:
+	#   64: number of squares on a chess board
+	#	8: number of ray directions
+	#	7: maximum array length
+	#	+8: number of knight moves
+	#	3*4: Possible types of Pawn Promotions
+	policy_vector_output = np.zeros(64*(8*7+8+3*4))
+	# 1000 arbitrary. Set to large number to generate all possible legal moves
+	for move in stockfish.get_top_moves(1000):
+		print(move)
+		index = Bindings.gen_index_py(move["Move"])
+		if move["Centipawn"]:
+			policy_vector_output[index] = move["Centipawn"]
+		else:
+		# Checkmate condition
+			policy_vector_output[index] = 525600
+	return (board_position, policy_vector_output)
 
-def run_stock(stockfish, game):
+def run_stock(stockfish, game, MoveData, Board, Slide, Masks):
 	stockfish.set_fen_position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-	stockfish.make_moves_from_current_position(["e2e4"])
-	print(stockfish.get_board_visual())
-#	for move in game:
-#		stockfish.make_moves_from_current_position([move])
-#		stockfish.get_board_visual()
+	starting_input = stockfish.get_fen_position()
+	output_data = []
+	for move in game:
+		output_data.append(gen_data_entry(stockfish, starting_input, MoveData, Board, Slide, Masks))
+		stockfish_move = MoveData.parse_move_py(move,Board,Slide, Masks)
+		stockfish.make_moves_from_current_position([stockfish_move])
+		starting_input = stockfish.get_fen_position()
+		break
+	return output_data
 
 if __name__ == "__main__":
 	Masks, SlidingMoves, Board, Move = InitState()
@@ -59,6 +84,5 @@ if __name__ == "__main__":
 	data = []
 	for game in games:
 		print(game)
-		print(Move.parse_move_py(game[0],Board,SlidingMoves, Masks))
-#		run_stock(stockfish,game)
+		run_stock(stockfish,game, Move, Board, SlidingMoves, Masks)
 		break
