@@ -3,10 +3,7 @@ use masks::*;
 use magic::*;
 use chessio::*; 
 use SideState::SideState;
-use pyo3::exceptions::PyTypeError;
-use pyo3::prelude::*;
 
-#[pyclass]
 pub struct GameState{
   pub _white: SideState,
   pub _black: SideState,
@@ -20,23 +17,6 @@ pub struct GameState{
 impl Default for GameState {
   fn default() -> Self {
     GameState{ _white: SideState::default(),_black: SideState::default(), _current_move: Color::WHITE,  _castling: 0xF, _enpassant: 0, _halfmove:0, _fullmove: 0}
-  }
-}
-
-#[pymethods]
-impl GameState{
-
-  #[new]
-  pub fn new() -> Self {
-    GameState::default()
-  }
-
-  pub fn parse_fen_py(&mut self, fen: &str ) -> PyResult<()> {
-    let result = self.parse_fen(fen);
-   match result{
-      Ok(t) => Ok(()),
-      Err(msg) => Err(PyTypeError::new_err(msg))
-    }
   }
 }
 

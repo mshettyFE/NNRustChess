@@ -1,4 +1,5 @@
 ```
+If training, run the following to get stockfish
 sudo apt install stockfish
 ```
 
@@ -26,7 +27,7 @@ You can find /path/to/libtorch/lib by running python3 in the terminal and run:
 add /lib to the end of the result of torch.__path__[0]. Use this path to replace /path/to/libtorch/lib.
 
 
-To run the code, run the following in 
+To run the code, run the following in  Rust ChessEngine directory
 
 ```
 LIBTORCH_USE_PYTORCH=1   cargo run

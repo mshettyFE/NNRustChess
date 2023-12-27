@@ -1,6 +1,8 @@
 use GameState::GameState;
 use masks::*;
 use magic::*;
+use PGNParser::*;
+
 
 fn main() {
   let masks: Masks = Masks::default();
@@ -19,4 +21,5 @@ fn main() {
     },
     Err(msg) => println!("{}",msg),
   }
+  PGNParser::pgn_parser();
 }

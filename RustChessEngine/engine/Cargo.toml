@@ -11,5 +11,6 @@ constants = { path = "../constants" }
 masks = { path = "../masks" }
 magic = { path = "../magic" }
 GameState = { path = "../GameState"}
+PGNParser = {path = "../PGNParser"}
 MoveAlgebraNotation = { path = "../MoveAlgebraNotation"}
 tch = { git = "https://github.com/LaurentMazare/tch-rs.git" }

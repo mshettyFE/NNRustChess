@@ -2,11 +2,8 @@ use constants::*;
 use GameState::GameState;
 use magic::SlidingMoves;
 use masks::Masks;
-use pyo3::exceptions::PyTypeError;
-use pyo3::prelude::*;
 use chessio::*;
 
-#[pyclass]
 pub struct MoveAN{
     pub _start: u64,
     pub _end: u64,
@@ -23,26 +20,6 @@ impl Default for MoveAN{
     fn default() -> Self {
         MoveAN{_start: 0, _end: 0, _color : Color::WHITE,  _type: PieceType::NONE, _promotion: PieceType::NONE, _capture: false, _enpassant: false, _castling: Castling::None, _index: 0}
     }
-}
-
-#[pymethods]
-impl MoveAN{
-    #[new]
-    pub fn new_py_move() -> Self {
-        MoveAN::default()
-    }  
-
-    pub fn parse_move_py(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> PyResult<String> {
-        let result = self.ParseSANMove(msg, board, slide, masks);
-       match result{
-          Ok(t) => Ok((t)),
-          Err(msg) => Err(PyTypeError::new_err(msg))
-        }
-      }
-
-    pub fn get_index(&self) -> PyResult<u16>{Ok(self._index)}
-
-
 }
 
 impl MoveAN{
@@ -78,10 +55,3 @@ impl MoveAN{
         Ok(("e2e4".to_string()))
     }
 }
-
-#[pyfunction]
-pub fn gen_index_py(uci_move: String) -> PyResult<u16>{Ok(gen_index(uci_move))}
-
-
-// Takes in UCI string and converts that to the index of the output array
-pub fn gen_index(uci_move: String) -> u16 {0}

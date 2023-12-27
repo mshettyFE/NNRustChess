@@ -2,9 +2,7 @@ use chessio::*;
 use constants::*;
 use masks::*;
 use std::collections::HashMap;
-use pyo3::prelude::*;
 
-#[pyclass]
 pub struct SlidingMoves{
   pub _rook_hash_map: HashMap<u64,u64>,
   pub _bishop_hash_map: HashMap<u64,u64>,
@@ -16,9 +14,7 @@ impl Default for SlidingMoves{
   }
 }
 
-#[pymethods]
 impl SlidingMoves{
-  #[new]
   pub fn new() -> Self {
     SlidingMoves::default()
   }
