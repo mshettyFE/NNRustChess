@@ -1,18 +1,17 @@
 import sys
 import re
-import chess
-import Bindings
+import bindings
 import numpy as np
 import chess
 import chess.engine
 
 def InitState():
-	a = Bindings.Masks()
-	b = Bindings.SlidingMoves()
+	a = bindings.Masks()
+	b = bindings.SlidingMoves()
 	b.initialize(a)
-	c = Bindings.GameState()
+	c = bindings.GameState()
 	c.parse_fen_py("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
-	d = Bindings.MoveAN()
+	d = bindings.MoveAN()
 	return (a,b,c,d)
 
 def pgn_parser():
@@ -56,7 +55,7 @@ def gen_data_entry(board, engine):
 	policy_vector_output = np.zeros(64*(8*7+8+3*4))
 	# 1000 arbitrary. Set to large number to generate all possible legal moves
 	for move in board.legal_moves:
-		index = Bindings.gen_index_py(move.uci())
+		index = bindings.gen_index_py(move.uci())
 		info = engine.analyse(board, chess.engine.Limit(depth=20)).get("score").white()
 		policy_vector_output[index] = info.score(mate_score=100000)
 	return policy_vector_output
