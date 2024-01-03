@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 constants = { path = "../constants" }
+regex = "1.10.2"
+safetensors = {git = "https://github.com/huggingface/safetensors.git"}

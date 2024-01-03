@@ -1,7 +1,4 @@
 use constants::*;
-use GameState::GameState;
-use magic::SlidingMoves;
-use masks::Masks;
 use chessio::*;
 
 pub struct MoveAN{
@@ -40,18 +37,8 @@ impl MoveAN{
         println!("{}", self._index);
         
     }
- 
-    pub fn get_start_u64(&self) -> String{"".to_string()}
- 
-    pub fn get_end_u64(&self) -> String{"".to_string()}
 
-    pub fn ParseSANMove(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> Result<String,String>{
-        self._index = 10;
-        Ok(("e4".to_string()))
-    }
-
-    pub fn ParseUCIMove(&mut self, msg: &str, board: &GameState, slide: &SlidingMoves, masks: &Masks ) -> Result<String,String>{
-        self._index = 10;
-        Ok(("e2e4".to_string()))
+    pub fn emit_UCI(&self)-> String{
+        return "".to_string();
     }
 }

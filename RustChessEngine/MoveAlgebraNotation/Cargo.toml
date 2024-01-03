@@ -7,7 +7,4 @@ edition = "2021"
 
 [dependencies]
 constants = { path = "../constants"}
-GameState = {path = "../GameState"}
-magic = {path = "../magic"}
-masks = {path = "../masks"}
 chessio = {path = "../chessio"}

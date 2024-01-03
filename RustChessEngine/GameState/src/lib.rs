@@ -1,8 +1,11 @@
+use std::process::Output;
+
 use constants::*;
 use masks::*;
 use magic::*;
 use chessio::*; 
 use SideState::SideState;
+use MoveAlgebraNotation::MoveAN;
 
 pub struct GameState{
   pub _white: SideState,
@@ -290,8 +293,6 @@ impl GameState{
     Ok(())
   }
 
-
-
   fn get_attacks(&self, masks: &Masks, sliding: &SlidingMoves) -> Result<u64, String> {
     let current_side: &SideState = match self._current_move{
       Color::WHITE => &self._white,
@@ -390,8 +391,30 @@ impl GameState{
     Ok(true)
   }
 
-  pub fn check_move_legality(&mut self,) -> Result<(),String>{
-    Ok(())
+  // formatted like https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Notation_for_moves
+  pub fn gen_move_SAN(&self, candidate_move: String,masks: &Masks, sliding: &SlidingMoves) -> Result<(MoveAN),String>{
+    let output_move = MoveAN::default();
+    Ok((output_move))
+  }
+
+  pub fn check_move_legality(&mut self, cand_move: &MoveAN) -> Result<bool, String>{
+    return Ok(true);
+  }
+
+  // given board state, generate all current legal moves
+  pub fn gen_legal_moves(&self,masks: &Masks, sliding: &SlidingMoves)-> Vec<MoveAN> {
+    let output = Vec::new();
+    return output;
+  }
+
+  pub fn make_move(&mut self, cand_move: &MoveAN,  masks: &Masks, sliding: &SlidingMoves, legal_check: bool) ->Result<(), String>{
+    return Ok(());
+  }
+
+  pub fn gen_training_pair(&self, masks: &Masks, sliding: &SlidingMoves) -> ((u64, u64), Vec<u64>){
+    // replace vec! call with indices from gen_legal_moves() function    
+    let output: ((u64,u64), Vec<u64>) = ((0,0),vec![1,2]);
+    return output;
   }
 
 }

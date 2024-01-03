@@ -9,5 +9,4 @@ members = [
     "GameState",
     "SideState",
     "MoveAlgebraNotation",
-    "PGNParser",
 ]

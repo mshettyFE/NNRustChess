@@ -1,7 +1,6 @@
 use GameState::GameState;
 use masks::*;
 use magic::*;
-use PGNParser::*;
 
 
 fn main() {
@@ -21,5 +20,5 @@ fn main() {
     },
     Err(msg) => println!("{}",msg),
   }
-  let mut games = PGNParser::pgn_parser();
+  let mut games = chessio::pgn_parser();
 }

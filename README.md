@@ -13,27 +13,11 @@ conda env create -f requirements.yml --name <env-name>
 conda activate <env-name>
 ```
 
-You will probably need to add the following to .bashrc (or run this command each time):
+To run the code, run ```cargo run``` in  RustChessEngine directory
 
-export LD_LIBRARY_PATH=/path/to/libtorch/lib:$LD_LIBRARY_PATH
-
-You can find /path/to/libtorch/lib by running python3 in the terminal and run:
-
+Can run following command to generate training dataset (work in progress)
 ```
->> import torch
->> torch.__path__[0]
+zstdcat *.zst |  cargo run
 ```
 
-add /lib to the end of the result of torch.__path__[0]. Use this path to replace /path/to/libtorch/lib.
-
-
-To run the code, run the following in  Rust ChessEngine directory
-
-```
-LIBTORCH_USE_PYTORCH=1   cargo run
-```
-
-Can run following command to do training (work in progress)
-```
-zstdcat *.zst |  LIBTORCH_USE_PYTORCH=1 cargo run
-```
+replace ```*.zst``` with whatever lichess database file you have.
