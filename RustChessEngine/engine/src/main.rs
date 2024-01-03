@@ -21,5 +21,5 @@ fn main() {
     },
     Err(msg) => println!("{}",msg),
   }
-  PGNParser::pgn_parser();
+  let mut games = PGNParser::pgn_parser();
 }

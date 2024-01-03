@@ -32,3 +32,8 @@ To run the code, run the following in  Rust ChessEngine directory
 ```
 LIBTORCH_USE_PYTORCH=1   cargo run
 ```
+
+Can run following command to do training (work in progress)
+```
+zstdcat *.zst |  LIBTORCH_USE_PYTORCH=1 cargo run
+```

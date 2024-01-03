@@ -6,7 +6,7 @@ Plan:
 	Uses bitboards: DONE
 	Can read in FEN notation: DONE
 	Implement SAN parser/emitter
-	Implement PGN parser
+	Implement PGN parser: DONE
 		As part of SAN and PGN parser, calculate index of move in output array
 	Implement UCI parser/emitter
 	Implements UCI protocol
