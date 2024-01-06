@@ -12,3 +12,4 @@ masks = { path = "../masks" }
 magic = { path = "../magic" }
 GameState = { path = "../GameState"}
 MoveAlgebraNotation = { path = "../MoveAlgebraNotation"}
+clap = { version = "4.0", features = ["derive"] }

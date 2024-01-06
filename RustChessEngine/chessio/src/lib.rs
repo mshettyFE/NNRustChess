@@ -1,7 +1,75 @@
 use regex::{Regex, bytes};
-use std::io::*;
+use std::thread::sleep;
+use std::{io::*};
+use std::{thread,time};
 use constants::*;
 use safetensors::*;
+use std::io::{BufRead, BufReader, Write};
+use std::sync::{Arc, Mutex};
+use std::process::*;
+
+pub fn spawn_stock()->(ChildStdin, ChildStdout){
+//  let mut child = Command::new("/home/lief/NNChessEngine/RustChessEngine/temp.sh")
+  let mut child = Command::new("stockfish")
+  .stdin(Stdio::piped())
+  .stdout(Stdio::piped())
+  .spawn()
+  .unwrap();
+  let mut stdin = child.stdin.take().unwrap();
+  let mut stdout = child.stdout.take().unwrap();
+  let mut stdout_buf = BufReader::new(stdout.by_ref());
+  let mut log = String::new();
+  // discard welcome message from stockfish
+  stdout_buf.read_line(&mut log);
+  return (stdin, stdout);
+}
+
+pub fn run_command(msg: &str, stock_stdin: &mut ChildStdin,  stock_stdout: &mut ChildStdout)->String{
+// takes in msg, and return the first complete line of output from stockfish
+  let mut log = String::new();
+  let mut msg_cpy = msg.to_string();
+  msg_cpy.push('\n');
+  let writer = Arc::new(Mutex::new(stock_stdin));
+  let mut writer_clone = writer.clone();
+  thread::scope(|s| {
+    s.spawn(move ||{
+      let mut writer_lock = writer_clone.lock().unwrap();
+      writer_lock.write_all(msg_cpy.as_bytes()).expect("Couldn't write to buffer");
+      writer_lock.flush();
+    });
+  });
+  let mut reader = BufReader::new(stock_stdout);
+  reader.read_line(&mut log);
+  return log;
+}
+
+pub fn eval_pos(stock_stdin: &mut ChildStdin,  stock_stdout: &mut ChildStdout)->f32{
+// Evaluate a board position via stockfish.
+//Still need to pass in FEN string to initialize board to evaluation.
+  let get_eval = Regex:: new(r".+([\+\-][0-9\.]+)").unwrap();
+  let mut log = String::new();
+  let writer = Arc::new(Mutex::new(stock_stdin));
+  let mut writer_clone = writer.clone();
+  thread::scope(|s| {
+    s.spawn(move ||{
+      let mut writer_lock = writer_clone.lock().unwrap();
+      writer_lock.write_all("eval\n".as_bytes()).expect("Couldn't write to buffer");
+      writer_lock.flush();
+    });
+  });
+  let mut reader = BufReader::new(stock_stdout);
+  for line in reader.lines(){
+    let str = line.unwrap();
+    if str.contains("Final evaluation"){
+      let caps = get_eval.captures(&str).unwrap();
+      log = caps.get(1).unwrap().as_str().to_string();
+      break;
+    }
+  }
+  let out: f32 = log.parse().unwrap();
+  return out;
+}
+
 
 pub fn pgn_parser() ->Vec<Vec<String>>{
   let remove_numbering = Regex:: new(r"[0-9]+\.").unwrap();

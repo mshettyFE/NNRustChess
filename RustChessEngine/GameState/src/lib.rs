@@ -412,7 +412,14 @@ impl GameState{
   }
 
   pub fn gen_training_pair(&self, masks: &Masks, sliding: &SlidingMoves) -> ((u64, u64), Vec<u64>){
-    // replace vec! call with indices from gen_legal_moves() function    
+	// Output representation of moves. The numbers are:
+	//   64: number of squares on a chess board
+	//	8: number of ray directions
+	//	7: maximum array length
+	//	+8: number of knight moves
+	//	3*4: Possible types of Pawn Promotions
+  // for the indices generated in gen_legal_moves(), fill that index with stockfish evaluation of board position after that move
+//	policy_vector_output = np.zeros(64*(8*7+8+3*4))
     let output: ((u64,u64), Vec<u64>) = ((0,0),vec![1,2]);
     return output;
   }
