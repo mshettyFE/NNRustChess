@@ -27,6 +27,7 @@ pub const START_POS:& str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq 
 #[derive(Eq)]
 #[derive(Debug)]
 #[derive(PartialEq)]
+// Possible void board square states
 pub enum VoidBoardPieceStatus{
     EMPTY, OCCUPIED, INVALID
 }
@@ -43,6 +44,7 @@ pub enum Color{
 #[derive(Eq)]
 #[derive(Hash)]
 #[derive(PartialEq)]
+// Queen is just a rook and a bishop
 pub enum SlidingPieceType{
     ROOK,BISHOP,
 }
@@ -58,6 +60,7 @@ pub enum PieceType{
 #[derive(Eq)]
 #[derive(Debug)]
 #[derive(PartialEq)]
+// encode castling in the lower 4 bits
 pub enum Castling{
     WhiteKing = 0b0000_0001,
     WhiteQueen = 0b0000_0010,
@@ -66,6 +69,7 @@ pub enum Castling{
     None = 0b0000_0000,
 }
 
+// empty VOID_BOARD
 pub const VOID_BOARD: [VoidBoardPieceStatus;144] = 
 [
     INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,
@@ -84,9 +88,9 @@ pub const VOID_BOARD: [VoidBoardPieceStatus;144] =
 
 
 #[derive(Debug)]
+// mapping from normal board to void board and vice versa
 pub struct VoidBitConversion{
     _void: [usize; 64],
-
 }
 
 impl VoidBitConversion{
@@ -133,6 +137,7 @@ impl VoidBitConversion{
       }    
 }
 
+// initalization of void board
 impl Default for VoidBitConversion { 
     fn default() -> Self {
         VoidBitConversion {

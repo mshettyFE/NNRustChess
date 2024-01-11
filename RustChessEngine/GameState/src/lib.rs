@@ -1,5 +1,3 @@
-use std::process::Output;
-
 use constants::*;
 use masks::*;
 use magic::*;
@@ -12,57 +10,22 @@ pub struct GameState{
   pub _black: SideState,
   pub _current_move: Color,
   pub _castling: i8,
-  pub _enpassant: u64, 
-  pub _halfmove: u64,
-  pub _fullmove: u64,
+  pub _enpassant: u64, // is enpassant allowed (and where is it?)
+  pub _halfmove: u64, // half moves are when 1 side moves
+  pub _fullmove: u64, // full mvoes are when both sides take a turn
 }
 
 impl Default for GameState {
   fn default() -> Self {
+    //0xF is no castling
     GameState{ _white: SideState::default(),_black: SideState::default(), _current_move: Color::WHITE,  _castling: 0xF, _enpassant: 0, _halfmove:0, _fullmove: 0}
   }
 }
 
 impl GameState{
-  fn loc_to_board(&self, location: &str) -> Result<u64,String> {
-    // Takes a two character location in rank-file notation, and convert it to a u64 board position
-    let loc = location.trim().to_lowercase();  
-    let mut output: u64  = 0;
-    if loc.len() != 2{
-      return Err(loc.to_owned()+ "is an invalid location");
-    }
-    let first_char = loc.chars().nth(0).unwrap();
-    match  first_char{
-      'a' => output |= RANKA,
-      'b' => output |= RANKB,
-      'c' => output |= RANKC,
-      'd' => output |= RANKD,
-      'e' => output |= RANKE,
-      'f' => output |= RANKF,
-      'g' => output |= RANKG,
-      'h' => output |= RANKH,
-      first_char => {
-        return Err("Invalid Rank ".to_string()+ " for " + &first_char.to_string());
-      }
-    }
-    let second_char = loc.chars().nth(1).unwrap();
-    match  second_char{
-      '1' => output &= FILE1,
-      '2' => output &= FILE2,
-      '3' => output &= FILE3,
-      '4' => output &= FILE4,
-      '5' => output &= FILE5,
-      '6' => output &= FILE6,
-      '7' => output &= FILE7,
-      '8' => output &= FILE8,
-      second_char => {
-        return Err("Invalid File".to_string()+ " for " + &second_char.to_string());
-      }
-    }
-    Ok(output)
-  }
 
   pub fn parse_fen(&mut self, fen: &str ) -> Result<(), String> {
+    // parse a FEN string into the game state
     // break up by / to seperate ranks
     let parts = fen.split("/");
     if parts.clone().count() != 8{
@@ -268,7 +231,7 @@ impl GameState{
       }  
     }
     else if _enpassant_len == 2{
-      match self.loc_to_board(enpassant) {
+      match chessio::loc_to_board(enpassant) {
         Ok(board) => final_enpass = board,
         Err(msg) => return Err(msg),
       }
@@ -294,6 +257,7 @@ impl GameState{
   }
 
   fn get_attacks(&self, masks: &Masks, sliding: &SlidingMoves) -> Result<u64, String> {
+    // get all the attack locations of the current side
     let current_side: &SideState = match self._current_move{
       Color::WHITE => &self._white,
       Color::BLACK => &self._black,
@@ -339,6 +303,7 @@ impl GameState{
   }
 
   fn find_occupied(&self) ->Result<u64, String> {
+// caluclate bitboard for denoting all occupied positions
     let white_oc = self._white._occupied;
     let black_oc = self._black._occupied;
     if (white_oc & black_oc) != 0{
@@ -348,6 +313,7 @@ impl GameState{
   }
 
   pub fn print_board( &self){
+    // print board in human readable format
     let  white_output: [char; 64];
     let  black_output: [char; 64];
     let mut final_output: [char; 64] = ['-'; 64];
@@ -377,6 +343,7 @@ impl GameState{
   }
 
   pub fn check_board_legality(&self, masks: &Masks, sliding: &SlidingMoves) -> Result<bool, String>{
+// check if it is your turn and you can currently attack the opposing king. If you can, then we are in an invalid board position
     let opposing_king_location = match self._current_move {
       Color::WHITE => self._black.extract_king().unwrap(),
       Color::BLACK => self._white.extract_king().unwrap(),
@@ -391,14 +358,63 @@ impl GameState{
     Ok(true)
   }
 
-  // formatted like https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Notation_for_moves
-  pub fn gen_move_SAN(&self, candidate_move: String,masks: &Masks, sliding: &SlidingMoves) -> Result<(MoveAN),String>{
-    let output_move = MoveAN::default();
-    Ok((output_move))
+/*
+Work in Progress
+  pub fn validate_moveAN(&self, cand_move: &MoveAN, masks: &Masks, sliding: &SlidingMoves) -> Result<u64,String>{
+    let mut output: u64 = 0;
+    let occupied: u64 = self.find_occupied().unwrap();
+    match cand_move._type {
+        PieceType::NONE => (),
+        PieceType::PAWN => {
+          if(cand_move._capture == true){
+            output |= masks._pawn_capture_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
+            }
+            else{
+                output |= masks._pawn_moves_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
+            }
+        },
+        PieceType::BISHOP => {
+          output |= sliding.get_bishop_move(occupied, cand_move._start as usize, masks);
+        },
+        PieceType::ROOK => {
+          output |= sliding.get_rook_move(occupied, cand_move._start as usize, masks);
+        },
+        PieceType::QUEEN => {
+          output |= sliding.get_bishop_move(occupied, cand_move._start as usize, masks);
+          output |= sliding.get_rook_move(occupied, cand_move._start as usize, masks);
+        },
+        PieceType::KING => {
+          output |= masks._king_mask[cand_move._start.trailing_zeros() as usize];
+        },
+        PieceType::KNIGHT => {
+          output |= masks._knight_mask[cand_move._start.trailing_zeros() as usize];
+        },
+    }
+    if(output & cand_move._end) == 0 {
+      return Err("Invalid Move for Board Config".to_string());
+    }
+    if(cand_move._capture){
+// If capture, remove same color pieces from consideration
+      let friendly = match cand_move._color{
+        Color::WHITE => self._white._occupied,
+        Color::BLACK =>self._black._occupied,
+      };
+      output ^= (output & friendly);
+    }
+    else{
+// otherwise, remove all other pieces from the output number
+      output ^= (output & occupied);
+    }
+      Ok(output)
+  }
+*/
+
+  pub fn make_move(&mut self, cand_move: &MoveAN,  masks: &Masks, sliding: &SlidingMoves) ->Result<(), String>{
+    return Ok(());
   }
 
-  pub fn check_move_legality(&mut self, cand_move: &MoveAN) -> Result<bool, String>{
-    return Ok(true);
+  pub fn check_move_legality(&mut self, cand_move: &MoveAN) -> bool{
+    return true;
   }
 
   // given board state, generate all current legal moves
@@ -407,8 +423,10 @@ impl GameState{
     return output;
   }
 
-  pub fn make_move(&mut self, cand_move: &MoveAN,  masks: &Masks, sliding: &SlidingMoves, legal_check: bool) ->Result<(), String>{
-    return Ok(());
+  // formatted like https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Notation_for_moves
+  pub fn gen_move_SAN(&self, candidate_move: String,masks: &Masks, sliding: &SlidingMoves) -> Result<(MoveAN),String>{
+    let output_move = MoveAN::default();
+    Ok((output_move))
   }
 
   pub fn gen_training_pair(&self, masks: &Masks, sliding: &SlidingMoves) -> ((u64, u64), Vec<u64>){

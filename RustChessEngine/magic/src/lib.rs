@@ -3,6 +3,7 @@ use constants::*;
 use masks::*;
 use std::collections::HashMap;
 
+// Maps an occupied board state to the possible sliding moves from a given position. Assumes all other pieces are capturable
 pub struct SlidingMoves{
   pub _rook_hash_map: HashMap<u64,u64>,
   pub _bishop_hash_map: HashMap<u64,u64>,
@@ -26,8 +27,8 @@ impl SlidingMoves{
 }
 
 impl SlidingMoves{
-  
   pub fn iterate_moves(&self){
+  // Print out possible moves for a given  board state
     println!("Test");
     for (key, value) in self._rook_hash_map.clone().into_iter() {
       println!("Rook {} {}", key, value);
@@ -40,19 +41,23 @@ impl SlidingMoves{
       print_locations(value);
     }
   }
+
   pub fn get_rook_move(&self, occupied: u64, index: usize, masks: &Masks) -> u64{
+  // returns rook moves given board state. Pretends that all other pieces are capturable
     let key: u64 =  occupied & masks._rook_mask[index];
     let  rook_slide_move: u64 = self._rook_hash_map[&key];
-    rook_slide_move ^ (rook_slide_move & occupied)
+    rook_slide_move
   }
   
   pub fn get_bishop_move(&self, occupied: u64, index: usize, masks: &Masks) -> u64{
+// same as get_rook_move, but for bishops. Same assumption that all other pieces are capturable
     let key: u64 = occupied & masks._bishop_mask[index];
     let  bishop_slide_move: u64 = self._bishop_hash_map[&key];
-    bishop_slide_move ^ (bishop_slide_move & occupied)
+    bishop_slide_move
   }
+
   fn permutate_board(&self, board: u64) -> Vec<u64>{
-    // Give a board state, returns a vector if size 2^M where M is the number of on bits
+    // Give a board state, returns a vector of size 2^M where M is the number of on bits
     // The vector is filled with all possible permutations of on and off of the set bits of board
     // Used in sliding move generation
   
@@ -105,6 +110,10 @@ impl SlidingMoves{
   }
   
   fn test_slide_move_candidates_filled_board(&self, current_void_board_square: usize, void_board_rep: &[VoidBoardPieceStatus; 144], sliding_directions: &Vec<isize>) -> u64{
+    // Helper function that, given a filled board, calculate the bitboard associated with the given board square.
+    // Use sliding_directions to denote how to extend attack line
+    // sliding directions for rooks: 12,-12,1,-1
+    // sliding directions for bishops: 13,11,-13,-11
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
       let mut output_moves: u64 = 0;
       let mut current: isize;
@@ -142,6 +151,7 @@ impl SlidingMoves{
       output_moves
   }
   
+  // for a given square, calculate the rook/bishop moves possible for the board state
   fn gen_rook_moves(&self, board: u64, location: usize) -> u64{
     let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
     if location > 63{
@@ -172,7 +182,7 @@ impl SlidingMoves{
     self.test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
   }
   
-  
+  // Generate rook/bishop moves for all indicies
   fn gen_sliding_rook_moves(&self, rook_masks: &[u64; 64]) -> HashMap<u64, u64> {
     let mut output: HashMap<u64, u64> = Default::default();
     for location in 0..64{
@@ -200,36 +210,10 @@ impl SlidingMoves{
       let permutations = self.permutate_board(bishopmask);
       for initial_state in permutations.iter(){
          let final_state:u64;
-        final_state = self.gen_rook_moves(*initial_state, location);
+        final_state = self.gen_bishop_moves(*initial_state, location);
         output.insert(*initial_state,final_state);
       }  
     }
     output
   }
 }
-
-/*
-fn calc_magic_number(initial_state: &u64, final_state: u64, shift: u64, hash_map: &HashMap<u64, u64> ) -> u64{
-  if(final_state ==0){
-    panic!("Final state can't be empty, since captures are allowed!");
-  }
-  let mut rng = rand::thread_rng();
-  let mut  roll: u64 = 0;
-  let output: u64  = 0;
-  let mut index: u64 = 0;
-  while(1==1){
-    roll = rng.gen();
-    index = (roll.wrapping_mul(*initial_state))>>shift;
-    if(hash_map.contains_key(&index)){
-      let stored_final_state = hash_map.get(&index).unwrap();
-      if(*stored_final_state==final_state){
-        break;
-      }
-    }
-    else{
-      break;
-    }
-  }
-  roll
-}
-*/

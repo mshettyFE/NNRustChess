@@ -23,11 +23,12 @@ fn main() {
   let args = Args::parse();
   if(args.train==true){
     let (mut stock_stdin, mut stock_stout) = spawn_stock();
-    println!("{}",eval_pos( &mut stock_stdin, &mut stock_stout));
-    println!("{}",run_command("uci", &mut stock_stdin, &mut stock_stout));
+    set_position("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b KQ g6 0 21", &mut stock_stdin, &mut stock_stout);
+//    println!("eval:{}", eval_pos(&mut stock_stdin, &mut stock_stout));
+      print_stock(&mut stock_stdin, &mut  stock_stout);
   }
   else{
-    match board.parse_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b KQ g6 0 21"){
+    match board.parse_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQ g6 0 21"){
       Ok(()) => (),
       Err(e) => return println!("{}",e),
     };

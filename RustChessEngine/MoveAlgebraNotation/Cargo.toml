@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 constants = { path = "../constants"}
 chessio = {path = "../chessio"}
+masks = { path = "../masks" }
+magic = { path = "../magic" }

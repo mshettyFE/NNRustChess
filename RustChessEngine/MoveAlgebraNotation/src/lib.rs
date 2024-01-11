@@ -1,16 +1,17 @@
 use constants::*;
 use chessio::*;
 
+// encode Move in a manner that can be understood by engine
 pub struct MoveAN{
-    pub _start: u64,
-    pub _end: u64,
-    pub _color: Color,
-    pub _type: PieceType,
-    pub _promotion: PieceType,
-    pub _capture: bool,
-    pub _enpassant: bool,
-    pub _castling: Castling,
-    pub _index: u16,
+    pub _start: u64, // starting position of piece
+    pub _end: u64, // ending position of piece
+    pub _color: Color, // color of piece
+    pub _type: PieceType, // what piece is being moved
+    pub _promotion: PieceType, // for pawns, what do you promote to?
+    pub _capture: bool, // is this a capture?
+    pub _enpassant: bool, // is this an enpassant?
+    pub _castling: Castling, // is this a castle (all other members are then ignored)
+    pub _index: u16, // the index in the output vector (TBD)
 }
 
 impl Default for MoveAN{
@@ -34,8 +35,7 @@ impl MoveAN{
         println!("{}", self._capture);
         println!("{}", self._enpassant);
         println!("{:?}", self._castling);
-        println!("{}", self._index);
-        
+        println!("{}", self._index);        
     }
 
     pub fn emit_UCI(&self)-> String{

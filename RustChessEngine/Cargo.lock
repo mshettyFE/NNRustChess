@@ -20,6 +20,8 @@ version = "0.1.0"
 dependencies = [
  "chessio",
  "constants",
+ "magic",
+ "masks",
 ]
 
 [[package]]

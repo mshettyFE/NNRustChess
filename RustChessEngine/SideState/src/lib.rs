@@ -1,5 +1,6 @@
 
 #[derive(Clone)]
+// Implement the state of  a given color. Gives location of all pieces, and then on a individual level
 pub struct SideState{
   pub _occupied: u64,
   pub _king: u64,
@@ -17,12 +18,14 @@ impl Default for SideState {
 }
   
 impl SideState{
+// convert index to bitboard
   fn gen_location(location :usize) -> u64{
     if location >63 {
       panic!("Out of bounds in SideState");
     }
     return 1<< location;
   }
+// update occupied and piece bitboard
   pub fn update_king(self: &mut Self, location: usize){
     let temp = Self::gen_location(location);
     self._king |= temp;
@@ -53,6 +56,8 @@ impl SideState{
     self._pawn |= temp;
     self._occupied |= temp;
   }
+
+// special function to extract the given sides king. guaranteed to have only 1
   pub fn extract_king(self: &Self) -> Result<u64, String> {
     let output = (self._king as i128) & -(self._king as i128);
     match output {
@@ -60,6 +65,7 @@ impl SideState{
       _ => Ok(output as u64),
     }
   }
+// extract piece type at location
   fn extract_location(self: & Self, location: usize) -> Result<char, String> {
     if location > 63 {
       return Err("Invalid location to access SideState".to_string());
@@ -104,6 +110,8 @@ impl SideState{
     }
     return Ok(output);
   }
+
+  // convert Side State to character array
   pub fn to_char_board(self: &Self) -> Result<[char; 64],String>{
     let mut output: [char; 64] = ['-'; 64];
     for number in 0..64{

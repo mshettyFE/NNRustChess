@@ -2,6 +2,8 @@ use constants::*;
 use std::collections::HashMap;
 use std::vec::Vec;
 
+// Move Masks for all the piece types.
+// This means that on an empty board, each bitboard represents all valid moves of a given piece
 pub struct Masks{
     pub _knight_mask: [u64; 64],
     pub _rook_mask: [u64; 64],
@@ -12,6 +14,7 @@ pub struct Masks{
 }
 
 impl Default for Masks{
+// generate masks for all piece types
   fn default() -> Self {
     Masks{ _knight_mask: gen_knight_masks(),
         _rook_mask: gen_rook_masks(),
@@ -22,41 +25,6 @@ impl Default for Masks{
     }
   }
 }
-
-  fn test_move_candidates( void_candidates: Vec<usize>, void_bit_mapping: &VoidBitConversion) -> u64{
-      let mut output_moves: u64 = 0;
-      for potential_move in void_candidates.iter(){
-      // Check if you can convert the void index to a valid bit index. If you can. Then OR in that position to output
-          match void_bit_mapping.void_to_bit(*potential_move){  
-              None => (),
-              Some(index) => output_moves |= 1 << index,
-          }            
-      }
-      output_moves
-  }
-
-  fn test_slide_move_candidates( current_void_square: usize, slide_directions: &Vec<isize>, void_bit_mapping: &VoidBitConversion) -> u64{
-      let mut output_moves: u64 = 0;
-      // probe each provided direction in void space
-      for direction in slide_directions.iter(){
-          // reset starting square
-          let mut current = current_void_square as isize;
-          let mut inside: bool = true;
-          while inside{
-      // project out the vector, and see if positive number. If not, then exit loop
-              current += direction;
-              if current < 0 {
-                  break;
-              }
-      // see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
-      match void_bit_mapping.void_to_bit(current as usize){  
-          None => inside = false,
-          Some(index) => output_moves |= 1 << index,
-          }
-      }
-      }
-      output_moves
-  }
 
   fn gen_knight_masks( ) -> [u64; 64] {
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
@@ -73,15 +41,15 @@ impl Default for Masks{
       arr
       }
 
-      fn gen_rook_masks( ) -> [u64; 64]{
-      let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
-      let mut output: [u64; 64] = [0;64];
-      let sliding_directions: Vec<isize> = Vec::from([12,-12,1,-1]);
-      for bit_index in 0..64 {
-          let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
-          output[bit_index] = test_slide_move_candidates(void_index, &sliding_directions, &void_bit_mapping);
-      }
-      output
+    fn gen_rook_masks( ) -> [u64; 64]{
+    let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
+    let mut output: [u64; 64] = [0;64];
+    let sliding_directions: Vec<isize> = Vec::from([12,-12,1,-1]);
+    for bit_index in 0..64 {
+        let void_index: usize = void_bit_mapping.bit_to_void(bit_index).unwrap();
+        output[bit_index] = test_slide_move_candidates(void_index, &sliding_directions, &void_bit_mapping);
+    }
+    output
   }
 
   fn gen_bishop_masks( ) -> [u64; 64]{
@@ -110,6 +78,7 @@ impl Default for Masks{
   }
 
   fn gen_pawn_move_masks( ) -> HashMap<Color,[u64;64]> {
+    // Normal pawn moves. Takes into account double moves on first advancement
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
       // Create an empty hashmap for the output
       let mut output = HashMap::<Color,[u64;64]>::new();
@@ -159,6 +128,7 @@ impl Default for Masks{
   }
 
   fn gen_pawn_capture_masks( ) -> HashMap<Color,[u64;64]> {
+    // generate capture moves for pawns
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
       // Create an empty hashmap for the output
       let mut output = HashMap::<Color,[u64;64]>::new();
@@ -195,3 +165,41 @@ impl Default for Masks{
       output.insert(Color::BLACK,black_moves);
       output
   }
+
+  fn test_move_candidates( void_candidates: Vec<usize>, void_bit_mapping: &VoidBitConversion) -> u64{
+    // helper function to make make all void board positions to a single bitboard. Used for non-sliding pieces (Pawn, Knight, King)
+    let mut output_moves: u64 = 0;
+        for potential_move in void_candidates.iter(){
+        // Check if you can convert the void index to a valid bit index. If you can. Then OR in that position to output
+            match void_bit_mapping.void_to_bit(*potential_move){  
+                None => (),
+                Some(index) => output_moves |= 1 << index,
+            }            
+        }
+        output_moves
+    }
+
+    fn test_slide_move_candidates( current_void_square: usize, slide_directions: &Vec<isize>, void_bit_mapping: &VoidBitConversion) -> u64{
+        // helper function to make make all void board positions to a single bitboard. For sliding pieces (Rook, Bishop, Queen)
+        let mut output_moves: u64 = 0;
+        // probe each provided direction in void space
+        for direction in slide_directions.iter(){
+            // reset starting square
+            let mut current = current_void_square as isize;
+            let mut inside: bool = true;
+            while inside{
+        // project out the vector, and see if positive number. If not, then exit loop
+                current += direction;
+                if current < 0 {
+                    break;
+                }
+        // see if you can match the void index to a bitboard index. If you can, then OR with output, otherwise, set loop condition to false
+        match void_bit_mapping.void_to_bit(current as usize){  
+            None => inside = false,
+            Some(index) => output_moves |= 1 << index,
+            }
+        }
+        }
+        output_moves
+    }
+
