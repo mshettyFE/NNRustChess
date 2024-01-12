@@ -39,6 +39,6 @@ fn main() {
         false => println!("No"),
       },
       Err(msg) => println!("{}",msg),
-    }  
+    }
   }
 }

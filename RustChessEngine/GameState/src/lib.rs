@@ -9,7 +9,6 @@ pub struct GameState{
   pub _white: SideState,
   pub _black: SideState,
   pub _current_move: Color,
-  pub _castling: i8,
   pub _enpassant: u64, // is enpassant allowed (and where is it?)
   pub _halfmove: u64, // half moves are when 1 side moves
   pub _fullmove: u64, // full mvoes are when both sides take a turn
@@ -17,8 +16,7 @@ pub struct GameState{
 
 impl Default for GameState {
   fn default() -> Self {
-    //0xF is no castling
-    GameState{ _white: SideState::default(),_black: SideState::default(), _current_move: Color::WHITE,  _castling: 0xF, _enpassant: 0, _halfmove:0, _fullmove: 0}
+    GameState{ _white: SideState::default(),_black: SideState::default(), _current_move: Color::WHITE, _enpassant: 0, _halfmove:0, _fullmove: 0}
   }
 }
 
@@ -163,6 +161,49 @@ impl GameState{
         }
       }
     }
+      // Castling rights
+      let castle: &str =  end_section[1].trim();
+      let castle_len = castle.len();
+      let mut white_castle: u8 = 0;
+      let mut black_castle: u8 = 0;
+      if castle_len == 0{
+        let msg: String = "Problem here: ".to_owned() + castle+ " Must be non-empty";
+        return Err(msg);
+      }
+      else if castle_len == 1{
+        if castle == "-" {}
+        match castle {
+          "k" => black_castle |= CASTLING_KING,
+          "K" => white_castle |= CASTLING_KING,
+          "q" => black_castle |= CASTLING_QUEEN,
+          "Q" => white_castle |= CASTLING_QUEEN,
+          castle => {
+            let msg: String = "Problem here: ".to_owned() + &castle.to_string() + " Characters must be either k, K, q, or Q";
+            return Err(msg);    
+          }    
+        }
+      }
+      else if castle_len > 4 {
+        let msg: String = "Problem here: ".to_owned() + castle+ " Must be at most 4 characters of either k, K, q, or Q";
+        return Err(msg);
+      }
+      else{
+        for castle_char in castle.chars() {
+          match castle_char {
+            'k' => black_castle |= CASTLING_KING,
+            'K' => white_castle |= CASTLING_KING,
+            'q' => black_castle |= CASTLING_QUEEN,
+            'Q' => white_castle |= CASTLING_QUEEN,
+              castle_char => {
+              let msg: String = "Problem here: ".to_owned() + &castle_char.to_string() + " Characters must be either k, K, q, or Q";
+              return Err(msg);    
+            }    
+          }
+        }  
+      }
+      self._black._castling = black_castle;
+      self._white._castling = white_castle;
+  
     // Who is to move currently
     let binding: String = end_section[0].trim().to_lowercase();
     let current_player: &str = binding.as_str();
@@ -178,46 +219,6 @@ impl GameState{
         return Err(msg);
       }
     }
-    // Castling rights
-    let castle: &str =  end_section[1].trim();
-    let mut  final_castle: i8 = 0;
-    let castle_len = castle.len();
-    if castle_len == 0{
-      let msg: String = "Problem here: ".to_owned() + castle+ " Must be non-empty";
-      return Err(msg);
-    }
-    else if castle_len == 1{
-      if castle == "-" {}
-      match castle {
-        "k" => final_castle |= Castling::WhiteKing as i8,
-        "K" => final_castle |= Castling::BlackKing as i8,
-        "q" => final_castle |= Castling::WhiteQueen as i8,
-        "Q" => final_castle |= Castling::BlackQueen as i8,
-        castle => {
-          let msg: String = "Problem here: ".to_owned() + &castle.to_string() + " Characters must be either k, K, q, or Q";
-          return Err(msg);    
-        }    
-      }
-    }
-    else if castle_len > 4 {
-      let msg: String = "Problem here: ".to_owned() + castle+ " Must be at most 4 characters of either k, K, q, or Q";
-      return Err(msg);
-    }
-    else{
-      for castle_char in castle.chars() {
-        match castle_char {
-          'k' => final_castle |= Castling::WhiteKing as i8,
-          'K' => final_castle |= Castling::BlackKing as i8,
-          'q' => final_castle |= Castling::WhiteQueen as i8,
-          'Q' => final_castle |= Castling::BlackQueen as i8,
-          castle_char => {
-            let msg: String = "Problem here: ".to_owned() + &castle_char.to_string() + " Characters must be either k, K, q, or Q";
-            return Err(msg);    
-          }    
-        }
-      }  
-    }
-    self._castling = final_castle;
     // enpassant
 
     let enpassant: &str =  end_section[2].trim();
@@ -358,56 +359,169 @@ impl GameState{
     Ok(true)
   }
 
-/*
-Work in Progress
-  pub fn validate_moveAN(&self, cand_move: &MoveAN, masks: &Masks, sliding: &SlidingMoves) -> Result<u64,String>{
-    let mut output: u64 = 0;
+  pub fn validate_move_an(&mut self, cand_move: &MoveAN, masks: &Masks, sliding: &SlidingMoves) -> Result<(),String>{
+    // validates if cand_move is compatible with current board state
+    let mut output: u64 = EMPTY_BOARD;
+    if(cand_move._color != self._current_move){
+      return Err("Move color doesn't match side that moves next".to_string());
+    }
+    let cur_side = match(self._current_move){
+      Color::BLACK => self._white.clone(),
+      Color::WHITE => self._black.clone(),
+    };
+    // where all the pieces are on the board
     let occupied: u64 = self.find_occupied().unwrap();
-    match cand_move._type {
-        PieceType::NONE => (),
-        PieceType::PAWN => {
-          if(cand_move._capture == true){
-            output |= masks._pawn_capture_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
+    // check for castling
+    if(cand_move._castling != CASTLING_NONE){
+    // check lower 4 bits of current side to see if any bits match. If not
+      if (cand_move._castling & cur_side._castling & 0x0F) == 0{
+        // Move wants to castle, but board state doesn't allow it
+        return Err("Unable to castle".to_string());
+      }
+      else{
+        // Some bits are the same between the board state and the move. check if you can do this castle
+        // get the other side's attacks
+        let mut other_side_attacks: u64 = 0;
+        // also get what squares to check for opposing attacks (can't castle over check. Can't castle out of check)
+        let mut king_castle_square_check: u64 = 0;
+        let mut queen_castle_square_check: u64 = 0;
+        match self._current_move {
+            Color::WHITE => {
+              self._current_move = Color::BLACK;
+              other_side_attacks = self.get_attacks(masks, sliding).unwrap();
+              king_castle_square_check = WHITE_KING_SIDE_CASTLE_CHECK;
+              queen_castle_square_check = WHITE_QUEEN_SIDE_CASTLE_CHECK;
+              self._current_move = Color::WHITE;
+            },
+            Color::BLACK => {
+              self._current_move = Color::WHITE;
+              other_side_attacks =self.get_attacks(masks, sliding).unwrap();
+              king_castle_square_check = BLACK_KING_SIDE_CASTLE_CHECK;
+              queen_castle_square_check = BLACK_QUEEN_SIDE_CASTLE_CHECK;
+              self._current_move = Color::BLACK;
+            },
+        }
+        // some non-NONE castling is found. See if you can castle
+        match cur_side._castling {
+          CASTLING_KING => {
+            // see if you are castling over check
+            if(other_side_attacks&king_castle_square_check) !=0{
+              return Err("Can't king-side castle in current board state due to checking rules".to_string());
             }
             else{
-                output |= masks._pawn_moves_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
+              return Ok(());
             }
+          },
+          CASTLING_QUEEN => {
+            // see if you are castling over check
+            if(other_side_attacks&queen_castle_square_check) !=0{
+              return Err("Can't queen-side castle in current board state due to checking rules".to_string());
+            }
+            else{
+              return Ok(());
+            }
+          }
+          _ => return Err("Invalid Actionable Castling state (NONE and ALL don't count)".to_string()),            
+        }
+      }  
+    }
+
+    // generate attack output for a piece type from cand_move
+    match cand_move._type {
+      PieceType::NONE => return Err("NONE is not a real piece type".to_string()),
+      PieceType::PAWN => {
+          if(cand_move._capture == true){
+            output |= masks._pawn_capture_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
+          }
+          else{
+            output |= masks._pawn_moves_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
+          }
         },
-        PieceType::BISHOP => {
+      PieceType::BISHOP => {
           output |= sliding.get_bishop_move(occupied, cand_move._start as usize, masks);
         },
-        PieceType::ROOK => {
+      PieceType::ROOK => {
           output |= sliding.get_rook_move(occupied, cand_move._start as usize, masks);
         },
-        PieceType::QUEEN => {
+      PieceType::QUEEN => {
           output |= sliding.get_bishop_move(occupied, cand_move._start as usize, masks);
           output |= sliding.get_rook_move(occupied, cand_move._start as usize, masks);
         },
-        PieceType::KING => {
+      PieceType::KING => {
           output |= masks._king_mask[cand_move._start.trailing_zeros() as usize];
         },
-        PieceType::KNIGHT => {
+      PieceType::KNIGHT => {
           output |= masks._knight_mask[cand_move._start.trailing_zeros() as usize];
         },
     }
-    if(output & cand_move._end) == 0 {
-      return Err("Invalid Move for Board Config".to_string());
-    }
     if(cand_move._capture){
-// If capture, remove same color pieces from consideration
-      let friendly = match cand_move._color{
+      // Check for enpassant
+      if( (cand_move._type == PieceType::PAWN) && cand_move._enpassant){
+          // check if enpassant square overlap with pawn capture
+          if(self._enpassant & output) == 0{
+            return Err("Enpassant move not valid".to_string());
+          }
+        }
+      // If capture, remove same color pieces from consideration
+      let mut friendly = match cand_move._color{
         Color::WHITE => self._white._occupied,
         Color::BLACK =>self._black._occupied,
       };
       output ^= (output & friendly);
     }
     else{
-// otherwise, remove all other pieces from the output number
+  // otherwise, remove all other pieces from the output number
       output ^= (output & occupied);
     }
-      Ok(output)
+    // check if start position is consistent/ correct piece type is selected
+    match cand_move._type {
+      PieceType::NONE => return Err("NONE is not a real piece type".to_string()),
+      PieceType::PAWN =>
+        if (cur_side._pawn & cand_move._start) == 0{
+          return Err("Pawn not found".to_string());
+        }
+      PieceType::ROOK =>
+          if (cur_side._rook & cand_move._start) == 0{
+            return Err("Rook not found".to_string());
+        },
+      PieceType::BISHOP =>
+          if (cur_side._bishop & cand_move._start) == 0{
+            return Err("Bishop not found".to_string());
+        },
+      PieceType::KNIGHT =>
+          if (cur_side._knight & cand_move._start) == 0{
+            return Err("Knight not found".to_string());
+        },
+      PieceType::KING =>
+          if (cur_side._king & cand_move._start) == 0{
+            return Err("King not found".to_string());
+        },
+      PieceType::QUEEN =>
+          if (cur_side._queen & cand_move._start) == 0{
+            return Err("Queen not found".to_string());
+        },
+    }
+    // check if end position is consistent
+    if(cand_move._end & output) ==0{
+      return Err("end position not consistent with attack pattern".to_string());
+    }
+
+    // check promotion type if needed
+    if(PieceType::PAWN  == cand_move._type){
+      let penultimate_rank = match self._current_move {
+        Color::WHITE => RANKB,
+        Color::BLACK => RANKG,
+      };
+    // check if pawn in on penultimate rank to see if we need to promote
+    if(penultimate_rank & cand_move._start) != 0 {
+    // Invalid piece types for promotion
+      if( (cand_move._promotion == PieceType::NONE) || (cand_move._promotion == PieceType::KING) || (cand_move._promotion == PieceType::PAWN)){
+        return Err("Invalid promotion type".to_string());
+      }
+    }
   }
-*/
+  Ok(())
+  }
 
   pub fn make_move(&mut self, cand_move: &MoveAN,  masks: &Masks, sliding: &SlidingMoves) ->Result<(), String>{
     return Ok(());

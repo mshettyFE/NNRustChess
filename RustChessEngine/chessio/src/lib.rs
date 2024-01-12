@@ -283,7 +283,6 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
   }
   // Castling rights
   let castle: &str =  end_section[1].trim();
-  let mut  final_castle: i8 = 0;
   let castle_len = castle.len();
   if castle_len == 0{
     let msg: String = "Problem here: ".to_owned() + castle+ " Must be non-empty";
@@ -292,10 +291,10 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
   else if castle_len == 1{
     if castle == "-" {}
     match castle {
-      "k" => final_castle |= Castling::WhiteKing as i8,
-      "K" => final_castle |= Castling::BlackKing as i8,
-      "q" => final_castle |= Castling::WhiteQueen as i8,
-      "Q" => final_castle |= Castling::BlackQueen as i8,
+      "k" => (),
+      "K" => (),
+      "q" => (),
+      "Q" => (),
       castle => {
         let msg: String = "Problem here: ".to_owned() + &castle.to_string() + " Characters must be either k, K, q, or Q";
         return Err(msg);    
@@ -309,10 +308,9 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
   else{
     for castle_char in castle.chars() {
       match castle_char {
-        'k' => final_castle |= Castling::WhiteKing as i8,
-        'K' => final_castle |= Castling::BlackKing as i8,
-        'q' => final_castle |= Castling::WhiteQueen as i8,
-        'Q' => final_castle |= Castling::BlackQueen as i8,
+        'k' => (),
+        'K' => (),
+        'q' => (),
         castle_char => {
           let msg: String = "Problem here: ".to_owned() + &castle_char.to_string() + " Characters must be either k, K, q, or Q";
           return Err(msg);    

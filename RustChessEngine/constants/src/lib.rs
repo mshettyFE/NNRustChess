@@ -21,8 +21,39 @@ pub const FILE3: u64 = FILE8 << 5;
 pub const FILE2: u64 = FILE8 << 6;
 pub const FILE1: u64 = FILE8 << 7;
 
+// Corners
+pub const CORNER1: u64 = RANKA & FILE1;
+pub const CORNER2: u64 = RANKA & FILE8;
+pub const CORNER3: u64 = RANKH & FILE1;
+pub const CORNER4: u64 = RANKH & FILE8;
+pub const KING_CORNERS: u64 = CORNER1 & CORNER2;
+pub const QUEEN_CORNERS: u64 = CORNER3 & CORNER4;
+pub const ALL_CORNERS: u64 = KING_CORNERS & QUEEN_CORNERS;
+
+// Check Castle squares. Rook squares included since rooks can't be in check
+pub const WHITE_KING_SIDE_CASTLE_CHECK: u64 = RANKA &FILE2 &FILE3 &FILE4;
+pub const WHITE_QUEEN_SIDE_CASTLE_CHECK: u64 = RANKA &FILE4 &FILE5 &FILE6 & FILE7;
+pub const BLACK_KING_SIDE_CASTLE_CHECK: u64 = RANKH &FILE2 &FILE3 &FILE4;
+pub const BLACK_QUEEN_SIDE_CASTLE_CHECK: u64 = RANKH &FILE4 &FILE5 &FILE6 & FILE7;
+
+// Castle Move encoding. 
+pub const WHITE_KING_SIDE_CASTLE: u64 = RANKA &FILE1 &FILE4;
+pub const WHITE_QUEEN_SIDE_CASTLE: u64 = RANKA &FILE4 &FILE8;
+pub const BLACK_KING_SIDE_CASTLE: u64 = RANKH &FILE1 &FILE4;
+pub const BLACK_QUEEN_SIDE_CASTLE: u64 = RANKH &FILE4 &FILE8;
+
+// Misc. Board states
+pub const EMPTY_BOARD: u64 = 0;
+pub const STARTING_POS: u64 = RANKA&RANKB&RANKG&RANKH;
+
 // Starting FEN
 pub const START_POS:& str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+// encode castling
+pub const CASTLING_NONE: u8 = 0;
+pub const CASTLING_KING: u8 = 1;
+pub const CASTLING_QUEEN: u8 = 2;
+pub const CASTLING_ALL: u8 = 3;
 
 #[derive(Eq)]
 #[derive(Debug)]
@@ -55,18 +86,6 @@ pub enum SlidingPieceType{
 #[derive(PartialEq)]
 pub enum PieceType{
   NONE, KING,ROOK,BISHOP,QUEEN, KNIGHT, PAWN,
-}
-
-#[derive(Eq)]
-#[derive(Debug)]
-#[derive(PartialEq)]
-// encode castling in the lower 4 bits
-pub enum Castling{
-    WhiteKing = 0b0000_0001,
-    WhiteQueen = 0b0000_0010,
-    BlackKing = 0b0000_0100,
-    BlackQueen = 0b0000_1000,
-    None = 0b0000_0000,
 }
 
 // empty VOID_BOARD

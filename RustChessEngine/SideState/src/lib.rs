@@ -1,3 +1,5 @@
+use constants::{ALL_CORNERS, KING_CORNERS, QUEEN_CORNERS, CASTLING_ALL, CASTLING_KING, CASTLING_QUEEN};
+
 
 #[derive(Clone)]
 // Implement the state of  a given color. Gives location of all pieces, and then on a individual level
@@ -9,11 +11,13 @@ pub struct SideState{
   pub _bishop: u64,
   pub _rook: u64,
   pub _pawn: u64,
+  pub _castling: u8,
 }
   
 impl Default for SideState { 
   fn default() -> Self {
-    SideState {_occupied: 0, _king: 0, _queen: 0, _knight: 0, _bishop: 0, _pawn: 0 , _rook: 0 }
+    // 0x0F is is all castling rights enabled
+    SideState {_occupied: 0, _king: 0, _queen: 0, _knight: 0, _bishop: 0, _pawn: 0 , _rook: 0 , _castling: 0}
   }
 }
   
@@ -30,6 +34,8 @@ impl SideState{
     let temp = Self::gen_location(location);
     self._king |= temp;
     self._occupied |= temp;
+    self._castling &= (CASTLING_ALL ^ CASTLING_KING);
+    self._castling &= (CASTLING_ALL ^ CASTLING_QUEEN);
   }
   pub fn update_queen(self: &mut Self, location: usize){
     let temp = Self::gen_location(location);
@@ -48,6 +54,12 @@ impl SideState{
   }
   pub fn update_rook(self: &mut Self, location: usize){
     let temp = Self::gen_location(location);
+    if(temp & KING_CORNERS) == 0{
+      self._castling &= (CASTLING_ALL ^ CASTLING_KING);
+    }
+    if(temp & QUEEN_CORNERS) == 0{
+      self._castling &= (CASTLING_ALL ^ CASTLING_QUEEN);
+    }
     self._rook |= temp;
     self._occupied |= temp;
   }
@@ -123,3 +135,4 @@ impl SideState{
     Ok(output)
   }
 }
+
