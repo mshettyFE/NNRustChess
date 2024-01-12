@@ -523,8 +523,15 @@ impl GameState{
   Ok(())
   }
 
-  pub fn make_move(&mut self, cand_move: &MoveAN,  masks: &Masks, sliding: &SlidingMoves) ->Result<(), String>{
-    return Ok(());
+  pub fn make_move(&mut self, cand_move: &MoveAN, masks: &Masks, sliding: &SlidingMoves,
+     start_pos: u64, end_pos: u64, color: Color, typ: PieceType,  prm: PieceType, cap: bool, enpass: bool, cast: u8) ->Result<MoveAN, String>{
+  // Wrapper around MoveAN new function that tries to create a move that is compatible with the current board state
+  let candidate = MoveAN::new(start_pos, end_pos, color, typ, prm, cap, enpass, cast);
+  match self.validate_move_an(cand_move, masks, sliding){
+      Ok(()) =>(),
+      Err(msg) => return Err(msg),
+  }
+    return Ok(candidate);
   }
 
   pub fn check_move_legality(&mut self, cand_move: &MoveAN) -> bool{
