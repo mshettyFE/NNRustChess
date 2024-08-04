@@ -1,9 +1,10 @@
-use constants::*;
-use masks::*;
-use magic::*;
-use chessio::*; 
-use SideState::SideState;
-use MoveAlgebraNotation::MoveAN;
+use crate::constants::*;
+use crate::masks::*;
+use crate::magic::*;
+use crate::chessio::*; 
+
+use crate::side_state::SideState;
+use crate::move_algebra_notation::MoveAN;
 
 pub struct GameState{
   pub _white: SideState,
@@ -24,13 +25,13 @@ impl GameState{
 
   pub fn parse_fen(&mut self, fen: &str ) -> Result<(), String> {
     // parse a FEN string into the game state
-    // break up by / to seperate ranks
+    // break up by / to separate ranks
     let parts = fen.split("/");
     if parts.clone().count() != 8{
       return Err("Invalid number of Ranks".to_owned());
     }
     let mut  sections: Vec<&str> = parts.collect();
-    // break up last part and seperate by space
+    // break up last part and separate by space
     let end_part = sections[7].trim().split(" ");
     if end_part.clone().count() != 6 {
       return Err("Invalid number of partitions at end of FEN notation".to_owned());
@@ -141,12 +142,12 @@ impl GameState{
             subtraction = 1;
           },
           _ => {
-            let msg: String = "Problem here: ".to_owned()+rank.clone() + "Invalid character";
+            let msg: String = "Problem here: ".to_owned()+rank + "Invalid character";
             return Err(msg);
           }
         }
         if occupied_spaces >8 {
-          let msg: String = "Problem here: ".to_owned()+rank.clone();
+          let msg: String = "Problem here: ".to_owned()+rank;
           return Err(msg);
         }
         if cur_index == 0{
@@ -156,7 +157,7 @@ impl GameState{
           cur_index -= subtraction as usize;
         }
         else{
-          let msg: String = "Problem here: ".to_owned()+rank.clone() + " Out of bounds";
+          let msg: String = "Problem here: ".to_owned()+rank + " Out of bounds";
           return Err(msg);
         }
       }
@@ -232,7 +233,7 @@ impl GameState{
       }  
     }
     else if _enpassant_len == 2{
-      match chessio::loc_to_board(enpassant) {
+      match loc_to_board(enpassant) {
         Ok(board) => final_enpass = board,
         Err(msg) => return Err(msg),
       }
@@ -304,7 +305,7 @@ impl GameState{
   }
 
   fn find_occupied(&self) ->Result<u64, String> {
-// caluclate bitboard for denoting all occupied positions
+// calculate bitboard for denoting all occupied positions
     let white_oc = self._white._occupied;
     let black_oc = self._black._occupied;
     if (white_oc & black_oc) != 0{
@@ -362,29 +363,29 @@ impl GameState{
   pub fn validate_move_an(&mut self, cand_move: &MoveAN, masks: &Masks, sliding: &SlidingMoves) -> Result<(),String>{
     // validates if cand_move is compatible with current board state
     let mut output: u64 = EMPTY_BOARD;
-    if(cand_move._color != self._current_move){
+    if cand_move._color != self._current_move {
       return Err("Move color doesn't match side that moves next".to_string());
     }
-    let cur_side = match(self._current_move){
+    let cur_side = match self._current_move{
       Color::BLACK => self._white.clone(),
       Color::WHITE => self._black.clone(),
     };
     // where all the pieces are on the board
     let occupied: u64 = self.find_occupied().unwrap();
     // check for castling
-    if(cand_move._castling != CASTLING_NONE){
+    if cand_move._castling != CASTLING_NONE{
     // check lower 4 bits of current side to see if any bits match. If not
-      if (cand_move._castling & cur_side._castling & 0x0F) == 0{
+      if cand_move._castling & cur_side._castling & 0x0F == 0{
         // Move wants to castle, but board state doesn't allow it
         return Err("Unable to castle".to_string());
       }
       else{
         // Some bits are the same between the board state and the move. check if you can do this castle
         // get the other side's attacks
-        let mut other_side_attacks: u64 = 0;
+        let other_side_attacks: u64;
         // also get what squares to check for opposing attacks (can't castle over check. Can't castle out of check)
-        let mut king_castle_square_check: u64 = 0;
-        let mut queen_castle_square_check: u64 = 0;
+        let king_castle_square_check: u64;
+        let queen_castle_square_check: u64;
         match self._current_move {
             Color::WHITE => {
               self._current_move = Color::BLACK;
@@ -430,7 +431,7 @@ impl GameState{
     match cand_move._type {
       PieceType::NONE => return Err("NONE is not a real piece type".to_string()),
       PieceType::PAWN => {
-          if(cand_move._capture == true){
+          if cand_move._capture == true{
             output |= masks._pawn_capture_mask[&cand_move._color][cand_move._start.trailing_zeros() as usize];
           }
           else{
@@ -454,24 +455,24 @@ impl GameState{
           output |= masks._knight_mask[cand_move._start.trailing_zeros() as usize];
         },
     }
-    if(cand_move._capture){
+    if cand_move._capture{
       // Check for enpassant
-      if( (cand_move._type == PieceType::PAWN) && cand_move._enpassant){
+      if (cand_move._type == PieceType::PAWN) && cand_move._enpassant{
           // check if enpassant square overlap with pawn capture
           if(self._enpassant & output) == 0{
             return Err("Enpassant move not valid".to_string());
           }
         }
       // If capture, remove same color pieces from consideration
-      let mut friendly = match cand_move._color{
+      let friendly = match cand_move._color{
         Color::WHITE => self._white._occupied,
         Color::BLACK =>self._black._occupied,
       };
-      output ^= (output & friendly);
+      output ^= output & friendly;
     }
     else{
   // otherwise, remove all other pieces from the output number
-      output ^= (output & occupied);
+      output ^= output & occupied;
     }
     // check if start position is consistent/ correct piece type is selected
     match cand_move._type {
@@ -507,15 +508,15 @@ impl GameState{
     }
 
     // check promotion type if needed
-    if(PieceType::PAWN  == cand_move._type){
+    if PieceType::PAWN  == cand_move._type{
       let penultimate_rank = match self._current_move {
         Color::WHITE => RANKB,
         Color::BLACK => RANKG,
       };
     // check if pawn in on penultimate rank to see if we need to promote
-    if(penultimate_rank & cand_move._start) != 0 {
+    if (penultimate_rank & cand_move._start) != 0 {
     // Invalid piece types for promotion
-      if( (cand_move._promotion == PieceType::NONE) || (cand_move._promotion == PieceType::KING) || (cand_move._promotion == PieceType::PAWN)){
+      if (cand_move._promotion == PieceType::NONE) || (cand_move._promotion == PieceType::KING) || (cand_move._promotion == PieceType::PAWN){
         return Err("Invalid promotion type".to_string());
       }
     }
@@ -534,23 +535,23 @@ impl GameState{
     return Ok(candidate);
   }
 
-  pub fn check_move_legality(&mut self, cand_move: &MoveAN) -> bool{
+  pub fn check_move_legality(&mut self, _cand_move: &MoveAN) -> bool{
     return true;
   }
 
   // given board state, generate all current legal moves
-  pub fn gen_legal_moves(&self,masks: &Masks, sliding: &SlidingMoves)-> Vec<MoveAN> {
+  pub fn gen_legal_moves(&self,_masks: &Masks, _sliding: &SlidingMoves)-> Vec<MoveAN> {
     let output = Vec::new();
     return output;
   }
 
   // formatted like https://en.wikipedia.org/wiki/Algebraic_notation_(chess)#Notation_for_moves
-  pub fn gen_move_SAN(&self, candidate_move: String,masks: &Masks, sliding: &SlidingMoves) -> Result<(MoveAN),String>{
+  pub fn gen_move_san(&self, _candidate_move: String, _masks: &Masks, _sliding: &SlidingMoves) -> Result<MoveAN,String>{
     let output_move = MoveAN::default();
-    Ok((output_move))
+    Ok(output_move)
   }
 
-  pub fn gen_training_pair(&self, masks: &Masks, sliding: &SlidingMoves) -> ((u64, u64), Vec<u64>){
+  pub fn gen_training_pair(&self, _masks: &Masks, _sliding: &SlidingMoves) -> ((u64, u64), Vec<u64>){
 	// Output representation of moves. The numbers are:
 	//   64: number of squares on a chess board
 	//	8: number of ray directions

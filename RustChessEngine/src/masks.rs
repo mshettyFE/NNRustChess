@@ -1,4 +1,4 @@
-use constants::*;
+use crate::constants::*;
 use std::collections::HashMap;
 use std::vec::Vec;
 
@@ -82,7 +82,7 @@ impl Default for Masks{
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
       // Create an empty hashmap for the output
       let mut output = HashMap::<Color,[u64;64]>::new();
-      // we will store the possible moves for both white and black seperately
+      // we will store the possible moves for both white and black separately
       let mut white_moves: [u64; 64] = [0;64];
       let mut black_moves: [u64; 64] = [0;64];
       for bit_index in 0..64{
@@ -132,7 +132,7 @@ impl Default for Masks{
       let void_bit_mapping: VoidBitConversion = VoidBitConversion::default();
       // Create an empty hashmap for the output
       let mut output = HashMap::<Color,[u64;64]>::new();
-      // we will store the possible moves for both white and black seperately
+      // we will store the possible moves for both white and black separately
       let mut white_moves: [u64; 64] = [0;64];
       let mut black_moves: [u64; 64] = [0;64];
       for bit_index in 0..64{
@@ -202,4 +202,3 @@ impl Default for Masks{
         }
         output_moves
     }
-

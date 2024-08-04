@@ -1,4 +1,4 @@
-use constants::{ALL_CORNERS, KING_CORNERS, QUEEN_CORNERS, CASTLING_ALL, CASTLING_KING, CASTLING_QUEEN};
+use crate::constants::*;
 
 
 #[derive(Clone)]
@@ -34,8 +34,8 @@ impl SideState{
     let temp = Self::gen_location(location);
     self._king |= temp;
     self._occupied |= temp;
-    self._castling &= (CASTLING_ALL ^ CASTLING_KING);
-    self._castling &= (CASTLING_ALL ^ CASTLING_QUEEN);
+    self._castling &= CASTLING_ALL ^ CASTLING_KING;
+    self._castling &= CASTLING_ALL ^ CASTLING_QUEEN;
   }
   pub fn update_queen(self: &mut Self, location: usize){
     let temp = Self::gen_location(location);
@@ -55,10 +55,10 @@ impl SideState{
   pub fn update_rook(self: &mut Self, location: usize){
     let temp = Self::gen_location(location);
     if(temp & KING_CORNERS) == 0{
-      self._castling &= (CASTLING_ALL ^ CASTLING_KING);
+      self._castling &= CASTLING_ALL ^ CASTLING_KING;
     }
     if(temp & QUEEN_CORNERS) == 0{
-      self._castling &= (CASTLING_ALL ^ CASTLING_QUEEN);
+      self._castling &= CASTLING_ALL ^ CASTLING_QUEEN;
     }
     self._rook |= temp;
     self._occupied |= temp;

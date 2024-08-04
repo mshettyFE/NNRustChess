@@ -1,6 +1,6 @@
-use chessio::*;
-use constants::*;
-use masks::*;
+use crate::chessio::*;
+use crate::constants::*;
+use crate::masks::*;
 use std::collections::HashMap;
 
 // Maps an occupied board state to the possible sliding moves from a given position. Assumes all other pieces are capturable
@@ -135,14 +135,13 @@ impl SlidingMoves{
                   Some(index) => output_moves |= 1 << index,
               }
             },
-              VoidBoardPieceStatus::OCCUPIED =>{
+            VoidBoardPieceStatus::OCCUPIED =>{
                   match void_bit_mapping.void_to_bit(current as usize){  
                     None => inside = false,
                     Some(index) => output_moves |= 1 << index,
                 }
-                break;
               },
-              VoidBoardPieceStatus::INVALID =>{
+            VoidBoardPieceStatus::INVALID =>{
                   break;
               },
             }
@@ -182,7 +181,7 @@ impl SlidingMoves{
     self.test_slide_move_candidates_filled_board(void_position, &board_in_void, &sliding_directions)
   }
   
-  // Generate rook/bishop moves for all indicies
+  // Generate rook/bishop moves for all indices
   fn gen_sliding_rook_moves(&self, rook_masks: &[u64; 64]) -> HashMap<u64, u64> {
     let mut output: HashMap<u64, u64> = Default::default();
     for location in 0..64{

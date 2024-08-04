@@ -1,10 +1,9 @@
-use regex::{Regex};
 use std::{thread};
-use constants::*;
-use safetensors::*;
 use std::io::{BufRead, BufReader, Write,Read};
 use std::sync::{Arc, Mutex};
 use std::process::*;
+
+use crate::constants::*;
 
 pub fn spawn_stock()->(ChildStdin, ChildStdout){
 // spawn a stockfish instance a background process. Returns Stdin and Stdout to said process so that calls can be made to stockfish
@@ -14,59 +13,57 @@ pub fn spawn_stock()->(ChildStdin, ChildStdout){
   .stdout(Stdio::piped())
   .spawn()
   .unwrap();
-  let mut stdin = child.stdin.take().unwrap();
+  let stdin = child.stdin.take().unwrap();
   let mut stdout = child.stdout.take().unwrap();
   // discard welcome message from stockfish so that stdout is clean
   let mut stdout_buf = BufReader::new(stdout.by_ref());
   let mut log = String::new();
-  stdout_buf.read_line(&mut log);
+  let _ = stdout_buf.read_line(&mut log);
   return (stdin, stdout);
 }
 
-// send certain commands to stockfish. seperate functions since stdout must be handled differently in each case
+// send certain commands to stockfish. separate functions since stdout must be handled differently in each case
 
-pub fn set_position(fen: &str, stock_stdin: &mut ChildStdin,  stock_stdout: &mut ChildStdout) ->Result<(), String>{
+pub fn set_position(fen: &str, stock_stdin: &mut ChildStdin,  _stock_stdout: &mut ChildStdout) ->Result<(), String>{
 // given a FEN string, set the internal state of stockfish to this board
   match validate_fen(fen) {
     Ok(()) => (),
     Err(msg) => return Err(msg)
   }
 // stockfish command is: position fen <fen_string>\n
-  let mut log = String::new();
   let mut msg_cpy = "position fen ".to_string()+fen;
   msg_cpy.push('\n');
 // send command to stockfish in another thread, then wait for it to finish. Using threads incase I want to read from stdout later on
   let writer = Arc::new(Mutex::new(stock_stdin));
-  let mut writer_clone = writer.clone();
+  let writer_clone = writer.clone();
   thread::scope(|s| {
     let h = s.spawn(move ||{
       let mut writer_lock = writer_clone.lock().unwrap();
       writer_lock.write_all(msg_cpy.as_bytes()).expect("Couldn't write to buffer");
-      writer_lock.flush();
+      let _ = writer_lock.flush();
     });
   // thread needs to finish
-    h.join();
+    let _ = h.join();
   });
   Ok(())
 }
 
 pub fn print_stock(stock_stdin: &mut ChildStdin,  stock_stdout: &mut ChildStdout){
-  let mut log = String::new();
-  let mut msg_cpy = "d\n".to_string();
+  let msg_cpy = "d\n".to_string();
   let writer = Arc::new(Mutex::new(stock_stdin));
-  let mut writer_clone = writer.clone();
+  let writer_clone = writer.clone();
   thread::scope(|s| {
     s.spawn(move ||{
       let mut writer_lock = writer_clone.lock().unwrap();
       writer_lock.write_all(msg_cpy.as_bytes()).expect("Couldn't write to buffer");
-      writer_lock.flush();
+      let _ = writer_lock.flush();
     });
   });
 // terminating condition is a line containing Checkers
-  let mut buffer = BufReader::new(stock_stdout);
+  let buffer = BufReader::new(stock_stdout);
   for line in buffer.lines(){
-    let mut l = line.unwrap();
-    if(l.contains("Checkers")){
+    let l = line.unwrap();
+    if l.contains("Checkers"){
       println!("{}",l);
       return;
     }
@@ -77,18 +74,18 @@ pub fn print_stock(stock_stdin: &mut ChildStdin,  stock_stdout: &mut ChildStdout
 pub fn eval_pos(stock_stdin: &mut ChildStdin,  stock_stdout: &mut ChildStdout)->f32{
 // Evaluate a board position via stockfish.
 //Still need to pass in FEN string to initialize board prior to evaluation.
-  let get_eval = Regex:: new(r".+([\+\-][0-9\.]+)").unwrap();
+  let get_eval = regex::Regex:: new(r".+([\+\-][0-9\.]+)").unwrap();
   let mut log = String::new();
   let writer = Arc::new(Mutex::new(stock_stdin));
-  let mut writer_clone = writer.clone();
+  let writer_clone = writer.clone();
   thread::scope(|s| {
     s.spawn(move ||{
       let mut writer_lock = writer_clone.lock().unwrap();
       writer_lock.write_all("eval\n".as_bytes()).expect("Couldn't write to buffer");
-      writer_lock.flush();
+      let _ = writer_lock.flush();
     });
   });
-  let mut reader = BufReader::new(stock_stdout);
+  let reader = BufReader::new(stock_stdout);
   for line in reader.lines(){
     let str = line.unwrap();
 // terminating condition is Final evaluation. This is were the evaluation should be
@@ -143,13 +140,13 @@ pub fn loc_to_board(location: &str) -> Result<u64,String> {
 
 pub fn validate_fen(fen: &str ) -> Result<(), String> {
   // Given a string, check if it is a valid FEN position
-  // break up by / to seperate ranks
+  // break up by / to separate ranks
   let parts = fen.split("/");
   if parts.clone().count() != 8{
     return Err("Invalid number of Ranks".to_owned());
   }
   let mut  sections: Vec<&str> = parts.collect();
-  // break up last part and seperate by space
+  // break up last part and separate by space
   let end_part = sections[7].trim().split(" ");
   if end_part.clone().count() != 6 {
     return Err("Invalid number of partitions at end of FEN notation".to_owned());
@@ -248,12 +245,12 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
           subtraction = 1;
         },
         _ => {
-          let msg: String = "Problem here: ".to_owned()+rank.clone() + "Invalid character";
+          let msg: String = "Problem here: ".to_owned()+rank + "Invalid character";
           return Err(msg);
         }
       }
       if occupied_spaces >8 {
-        let msg: String = "Problem here: ".to_owned()+rank.clone();
+        let msg: String = "Problem here: ".to_owned()+rank;
         return Err(msg);
       }
       if cur_index == 0{
@@ -263,7 +260,7 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
         cur_index -= subtraction as usize;
       }
       else{
-        let msg: String = "Problem here: ".to_owned()+rank.clone() + " Out of bounds";
+        let msg: String = "Problem here: ".to_owned()+rank + " Out of bounds";
         return Err(msg);
       }
     }
@@ -321,7 +318,6 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
   // enpassant
 
   let enpassant: &str =  end_section[2].trim();
-  let mut final_enpass: u64  = 0;
   let _enpassant_len = enpassant.len();
   if enpassant.len() == 1{
     if enpassant == "-" {}
@@ -332,7 +328,7 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
   }
   else if _enpassant_len == 2{
     match loc_to_board(enpassant) {
-      Ok(board) => final_enpass = board,
+      Ok(_board) => (),
       Err(msg) => return Err(msg),
     }
   }
@@ -343,13 +339,13 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
   // half moves
   let half_move_str: &str =  end_section[3].trim();
   match half_move_str.parse::<u64>(){
-    Ok(half_moves) => (),
+    Ok(_half_moves) => (),
     Err(_msg) => return Err("Unable convert half move value to unsigned integer".to_string()),
   }
   // full moves
   let full_move_str: &str =  end_section[4].trim();
   match full_move_str.parse::<u64>(){
-    Ok(full_moves) => (),
+    Ok(_full_moves) => (),
     Err(_msg) => return Err("Unable convert full move value to unsigned integer".to_string()),
   }
   Ok(())
@@ -357,29 +353,30 @@ pub fn validate_fen(fen: &str ) -> Result<(), String> {
 
 pub fn pgn_parser() ->Vec<Vec<String>>{
 // given a pgn file from the lichess database, grab all the moves for all the games present
-  let remove_numbering = Regex:: new(r"[0-9]+\.").unwrap();
-  let move_re = Regex::new(r"\* ([#0-9A-Za-z+-]+) ([#0-9A-Za-z+-]+) ([ #0-9A-Za-z+-\/]+)?\*").unwrap();
+  let remove_numbering = regex::Regex:: new(r"[0-9]+\.").unwrap();
+  let move_re = regex::Regex::new(r"\* ([#0-9A-Za-z+-]+) ([#0-9A-Za-z+-]+) ([ #0-9A-Za-z+-\/]+)?\*").unwrap();
   let mut buffer  = String::new();
   let mut games  = Vec::new();
   let stdin = std::io::stdin();
   let mut handle = stdin.lock();
-  let mut counter: i32 = 0;
-  while(true){
-      let mut bytes_read = handle.read_line(&mut buffer).unwrap();
-      // EOF
-      if(bytes_read == 0){
-          break;
-      }
-      // New line encountered. This only happens if starting a new game, or the next line is the moves
-      if(bytes_read == 1){
-          buffer.clear();
-          bytes_read = handle.read_line(&mut buffer).unwrap();
+  let mut bytes_read: usize; 
+  loop {
+      buffer.clear();
+      bytes_read = handle.read_line(&mut buffer).unwrap();
+      match bytes_read {
+        0 => { //EOF
+            break;
+        }
+        1 => { //new line
+          continue;
+        }
+        _ => {
           // Skip new game headers
-          if(buffer.contains("Event")){
+          if buffer.contains("Event"){
               continue;
           }
           // replace full move numbers with "**" for easier parsing
-          let mut stripped = remove_numbering.replace_all(&buffer[..],"**");
+          let stripped = remove_numbering.replace_all(&buffer[..],"**");
           // replace newline with " *" for easier parsing
           let terminated = stripped.replace('\n', " **");
           // Get all
@@ -387,17 +384,18 @@ pub fn pgn_parser() ->Vec<Vec<String>>{
               |caps|{[caps.get(1).unwrap().as_str().to_string(), caps.get(2).unwrap().as_str().to_string()]}
           ).collect();
           // if the games are eval() games, ignore them (while be running eval on our own later)
-          if(full_moves.len()==0){
+          if full_moves.len()==0{
               continue;
           }
           // remove game result  from end
           let last_index = full_moves.len()-1;
-          if(full_moves[last_index].contains("-")){
+          if full_moves[last_index].contains("-"){
               full_moves.remove(last_index);
           }
-          games.push(full_moves.clone());
+          games.push(full_moves.clone()); 
+        }
       }
-  }
+ }
 // list of list of SAN moves
   return games;
 }

@@ -1,6 +1,12 @@
-use crate::VoidBoardPieceStatus::EMPTY;
-use crate::VoidBoardPieceStatus::INVALID;
+#[derive(Eq)]
+#[derive(Debug)]
+#[derive(PartialEq)]
+// Possible void board square states
+pub enum VoidBoardPieceStatus{
+    EMPTY, OCCUPIED, INVALID
+}
 
+use self::VoidBoardPieceStatus::*;
 // Ranks 
 pub const RANKA: u64 = 255;
 pub const RANKB: u64 = 255 << 8;
@@ -55,14 +61,6 @@ pub const CASTLING_KING: u8 = 1;
 pub const CASTLING_QUEEN: u8 = 2;
 pub const CASTLING_ALL: u8 = 3;
 
-#[derive(Eq)]
-#[derive(Debug)]
-#[derive(PartialEq)]
-// Possible void board square states
-pub enum VoidBoardPieceStatus{
-    EMPTY, OCCUPIED, INVALID
-}
-
 
 #[derive(Eq)]
 #[derive(Hash)]
@@ -91,7 +89,7 @@ pub enum PieceType{
 // empty VOID_BOARD
 pub const VOID_BOARD: [VoidBoardPieceStatus;144] = 
 [
-    INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,
+     INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,
     INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,INVALID,
     INVALID,INVALID,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,INVALID,INVALID,
     INVALID,INVALID,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,EMPTY,INVALID,INVALID,
@@ -156,7 +154,7 @@ impl VoidBitConversion{
       }    
 }
 
-// initalization of void board
+// initialization of void board
 impl Default for VoidBitConversion { 
     fn default() -> Self {
         VoidBitConversion {

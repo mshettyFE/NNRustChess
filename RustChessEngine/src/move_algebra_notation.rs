@@ -1,5 +1,5 @@
-use constants::*;
-use chessio::*;
+use crate::constants::*;
+use crate::chessio::*;
 
 // encode Move in a manner that can be understood by engine
 pub struct MoveAN{
@@ -40,7 +40,7 @@ impl MoveAN{
         return 0;
     }
 
-    pub fn emit_UCI(&self)-> String{
+    pub fn emit_uci(&self)-> String{
         return "".to_string();
     }
 }
